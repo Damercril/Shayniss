@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/theme/app_colors.dart';
+import '../widgets/client_selection_dialog.dart';
+import '../widgets/service_selection_dialog.dart';
+import '../widgets/time_slot_selection_dialog.dart';
 
 class AppointmentFormScreen extends StatefulWidget {
   final Map<String, dynamic>? appointment;
@@ -22,6 +25,10 @@ class _AppointmentFormScreenState extends State<AppointmentFormScreen> {
   late TextEditingController _timeController;
   late TextEditingController _durationController;
   late TextEditingController _notesController;
+  dynamic _selectedClientId;
+  dynamic _selectedServiceId;
+  DateTime? _selectedDate;
+  DateTime? _selectedTimeSlot;
 
   @override
   void initState() {
@@ -107,8 +114,17 @@ class _AppointmentFormScreenState extends State<AppointmentFormScreen> {
                 hint: 'Sélectionner un client',
                 prefixIcon: Icons.person_outline,
                 readOnly: true,
-                onTap: () {
-                  // TODO: Ouvrir la sélection de client
+                onTap: () async {
+                  final client = await showDialog<Map<String, dynamic>>(
+                    context: context,
+                    builder: (context) => const ClientSelectionDialog(),
+                  );
+                  if (client != null) {
+                    setState(() {
+                      _clientController.text = client['name'];
+                      _selectedClientId = client['id'];
+                    });
+                  }
                 },
               ),
               SizedBox(height: 16.h),
@@ -120,8 +136,18 @@ class _AppointmentFormScreenState extends State<AppointmentFormScreen> {
                 hint: 'Sélectionner un service',
                 prefixIcon: Icons.spa_outlined,
                 readOnly: true,
-                onTap: () {
-                  // TODO: Ouvrir la sélection de service
+                onTap: () async {
+                  final service = await showDialog<Map<String, dynamic>>(
+                    context: context,
+                    builder: (context) => const ServiceSelectionDialog(),
+                  );
+                  if (service != null) {
+                    setState(() {
+                      _serviceController.text = service['name'];
+                      _selectedServiceId = service['id'];
+                      _durationController.text = service['duration'];
+                    });
+                  }
                 },
               ),
               SizedBox(height: 16.h),
@@ -148,6 +174,24 @@ class _AppointmentFormScreenState extends State<AppointmentFormScreen> {
                         if (date != null) {
                           _dateController.text =
                               '${date.day}/${date.month}/${date.year}';
+                          _selectedDate = date;
+
+                          // Si un service est sélectionné, on peut choisir l'heure
+                          if (_selectedServiceId != null) {
+                            final timeSlot = await showDialog<DateTime>(
+                              context: context,
+                              builder: (context) => TimeSlotSelectionDialog(
+                                selectedDate: date,
+                                serviceDuration: const Duration(minutes: 60), // TODO: Utiliser la vraie durée du service
+                              ),
+                            );
+                            if (timeSlot != null) {
+                              setState(() {
+                                _timeController.text = '${timeSlot.hour}:${timeSlot.minute.toString().padLeft(2, '0')}';
+                                _selectedTimeSlot = timeSlot;
+                              });
+                            }
+                          }
                         }
                       },
                     ),
@@ -161,12 +205,27 @@ class _AppointmentFormScreenState extends State<AppointmentFormScreen> {
                       prefixIcon: Icons.access_time_outlined,
                       readOnly: true,
                       onTap: () async {
-                        final time = await showTimePicker(
+                        if (_selectedDate == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Veuillez d\'abord sélectionner une date'),
+                            ),
+                          );
+                          return;
+                        }
+
+                        final timeSlot = await showDialog<DateTime>(
                           context: context,
-                          initialTime: TimeOfDay.now(),
+                          builder: (context) => TimeSlotSelectionDialog(
+                            selectedDate: _selectedDate!,
+                            serviceDuration: const Duration(minutes: 60), // TODO: Utiliser la vraie durée du service
+                          ),
                         );
-                        if (time != null) {
-                          _timeController.text = time.format(context);
+                        if (timeSlot != null) {
+                          setState(() {
+                            _timeController.text = '${timeSlot.hour}:${timeSlot.minute.toString().padLeft(2, '0')}';
+                            _selectedTimeSlot = timeSlot;
+                          });
                         }
                       },
                     ),

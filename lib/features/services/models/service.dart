@@ -10,6 +10,8 @@ class Service {
   final bool isActive;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final List<String> photoUrls; // URLs des photos du service
+  final String? mainPhotoUrl; // Photo principale du service
 
   Service({
     String? id,
@@ -21,10 +23,13 @@ class Service {
     bool? isActive,
     DateTime? createdAt,
     DateTime? updatedAt,
+    List<String>? photoUrls,
+    this.mainPhotoUrl,
   })  : id = id ?? const Uuid().v4(),
         isActive = isActive ?? true,
         createdAt = createdAt ?? DateTime.now(),
-        updatedAt = updatedAt ?? DateTime.now();
+        updatedAt = updatedAt ?? DateTime.now(),
+        photoUrls = photoUrls ?? [];
 
   Map<String, dynamic> toMap() {
     return {
@@ -37,6 +42,8 @@ class Service {
       'isActive': isActive ? 1 : 0,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
+      'photoUrls': photoUrls,
+      'mainPhotoUrl': mainPhotoUrl,
     };
   }
 
@@ -45,36 +52,39 @@ class Service {
       id: map['id'],
       name: map['name'],
       category: map['category'],
-      price: map['price'],
+      price: map['price'].toDouble(),
       duration: map['duration'],
       description: map['description'],
       isActive: map['isActive'] == 1,
       createdAt: DateTime.parse(map['createdAt']),
       updatedAt: DateTime.parse(map['updatedAt']),
+      photoUrls: List<String>.from(map['photoUrls'] ?? []),
+      mainPhotoUrl: map['mainPhotoUrl'],
     );
   }
 
   Service copyWith({
-    String? id,
     String? name,
     String? category,
     double? price,
     int? duration,
     String? description,
     bool? isActive,
-    DateTime? createdAt,
-    DateTime? updatedAt,
+    List<String>? photoUrls,
+    String? mainPhotoUrl,
   }) {
     return Service(
-      id: id ?? this.id,
+      id: id,
       name: name ?? this.name,
       category: category ?? this.category,
       price: price ?? this.price,
       duration: duration ?? this.duration,
       description: description ?? this.description,
       isActive: isActive ?? this.isActive,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? DateTime.now(),
+      createdAt: createdAt,
+      updatedAt: DateTime.now(),
+      photoUrls: photoUrls ?? this.photoUrls,
+      mainPhotoUrl: mainPhotoUrl ?? this.mainPhotoUrl,
     );
   }
 }

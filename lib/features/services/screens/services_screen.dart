@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/service_images.dart';
+import '../widgets/service_photos_gallery.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:flutter/services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../services/share_service.dart';
 
 class ServicesScreen extends StatelessWidget {
   const ServicesScreen({super.key});
@@ -130,79 +136,160 @@ class ServicesScreen extends StatelessWidget {
     String price,
     IconData icon,
   ) {
+    // Obtenir des images aléatoires pour ce service
+    final List<String> serviceImages = ServiceImages.getRandomServiceImages();
+
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-          color: AppColors.textLight.withOpacity(0.2),
-        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: ListTile(
-        contentPadding: EdgeInsets.all(16.w),
-        leading: Container(
-          width: 48.w,
-          height: 48.w,
-          decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
-            shape: BoxShape.circle,
+      child: Column(
+        children: [
+          // Galerie de photos
+          ServicePhotosGallery(
+            photoUrls: serviceImages,
+            mainPhotoUrl: serviceImages.isNotEmpty ? serviceImages[0] : null,
+            isEditable: true,
           ),
-          child: Icon(
-            icon,
-            color: AppColors.primary,
-            size: 24.w,
-          ),
-        ),
-        title: Text(
-          name,
-          style: TextStyle(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w600,
-            color: AppColors.text,
-          ),
-        ),
-        subtitle: Text(
-          duration,
-          style: TextStyle(
-            fontSize: 14.sp,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              price,
-              style: TextStyle(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w600,
-                color: AppColors.primary,
-              ),
-            ),
-            SizedBox(width: 16.w),
-            PopupMenuButton(
-              icon: Icon(Icons.more_vert, color: AppColors.textSecondary),
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  child: Text('Modifier'),
-                  value: 'edit',
+          Padding(
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Text(
+                            name,
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.text,
+                            ),
+                          ),
+                          SizedBox(width: 8.w),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 8.w,
+                              vertical: 4.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
+                            child: Text(
+                              'Populaire',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    PopupMenuButton(
+                      icon: Icon(Icons.more_vert, color: AppColors.textSecondary),
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          child: Text('Modifier'),
+                          value: 'edit',
+                        ),
+                        PopupMenuItem(
+                          child: Text('Supprimer'),
+                          value: 'delete',
+                        ),
+                      ],
+                      onSelected: (value) {
+                        if (value == 'edit') {
+                          _showEditServiceModal(context);
+                        } else if (value == 'delete') {
+                          _showDeleteConfirmation(context);
+                        }
+                      },
+                    ),
+                  ],
                 ),
-                PopupMenuItem(
-                  child: Text('Supprimer'),
-                  value: 'delete',
+                SizedBox(height: 8.h),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.access_time,
+                      size: 16.w,
+                      color: AppColors.textSecondary,
+                    ),
+                    SizedBox(width: 4.w),
+                    Text(
+                      duration,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    SizedBox(width: 16.w),
+                    Icon(
+                      Icons.euro,
+                      size: 16.w,
+                      color: AppColors.primary,
+                    ),
+                    SizedBox(width: 4.w),
+                    Text(
+                      price,
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 12.h),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _showShareOptions(context, name, price, duration),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          padding: EdgeInsets.symmetric(vertical: 12.h),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.r),
+                          ),
+                        ),
+                        icon: Icon(
+                          FontAwesomeIcons.shareNodes,
+                          color: Colors.white,
+                          size: 16.w,
+                        ),
+                        label: Text(
+                          'Partager',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
-              onSelected: (value) {
-                if (value == 'edit') {
-                  _showEditServiceModal(context);
-                } else if (value == 'delete') {
-                  _showDeleteConfirmation(context);
-                }
-              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -404,6 +491,179 @@ class ServicesScreen extends StatelessWidget {
             color: AppColors.text,
           ),
         ),
+      ),
+    );
+  }
+
+  void _showShareOptions(BuildContext context, String serviceName, String price, String duration) {
+    // Générer un lien court pour ce service
+    final String serviceLink = ShareService.createShareableLink(
+      serviceName: serviceName,
+      price: price,
+      duration: duration,
+    );
+
+    final messageText = '''✨ $serviceName chez Shayniss Beauty
+
+⏰ Durée : $duration
+💰 Prix : $price
+
+💅 Réservez facilement en ligne :
+$serviceLink
+
+À bientôt dans notre salon ! 💖''';
+
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+      ),
+      builder: (context) => Container(
+        padding: EdgeInsets.all(16.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildModalHeader(context, 'Partager le service'),
+            SizedBox(height: 24.h),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildShareButton(
+                  'Partager',
+                  FontAwesomeIcons.shareNodes,
+                  AppColors.primary,
+                  () => _shareService(context, messageText),
+                ),
+                _buildShareButton(
+                  'Copier',
+                  Icons.copy,
+                  Colors.grey,
+                  () => _copyToClipboard(context, messageText),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShareButton(String label, IconData icon, Color color, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: EdgeInsets.all(12.w),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 24.w),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12.sp,
+              color: AppColors.text,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _shareService(BuildContext context, String message) async {
+    Navigator.pop(context);
+    await Share.share(
+      message,
+      subject: 'Réservez votre service beauté',
+    );
+  }
+
+  void _copyToClipboard(BuildContext context, String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Lien copié dans le presse-papiers !'),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.r),
+        ),
+      ),
+    );
+  }
+}
+
+class ServicePhotosGallery extends StatefulWidget {
+  final List<String> photoUrls;
+  final String? mainPhotoUrl;
+  final bool isEditable;
+
+  const ServicePhotosGallery({
+    Key? key,
+    required this.photoUrls,
+    this.mainPhotoUrl,
+    this.isEditable = false,
+  }) : super(key: key);
+
+  @override
+  State<ServicePhotosGallery> createState() => _ServicePhotosGalleryState();
+}
+
+class _ServicePhotosGalleryState extends State<ServicePhotosGallery> {
+  int _currentIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 120.h,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.network(
+              widget.mainPhotoUrl ?? '',
+              fit: BoxFit.cover,
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: 40.h,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.5),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: widget.photoUrls.asMap().entries.map((entry) {
+                  return Container(
+                    margin: EdgeInsets.symmetric(horizontal: 4.w),
+                    width: 8.w,
+                    height: 8.w,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _currentIndex == entry.key
+                          ? AppColors.primary
+                          : AppColors.textSecondary.withOpacity(0.5),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

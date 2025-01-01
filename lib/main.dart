@@ -7,6 +7,8 @@ import 'features/navigation/screens/main_navigation.dart';
 import 'features/messages/services/message_service.dart';
 import 'features/messages/services/sound_service.dart';
 import 'features/notifications/services/push_notification_service.dart';
+import 'features/auth/services/auth_service.dart';
+import 'features/auth/screens/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +24,7 @@ void main() async {
   await initializeDateFormatting('fr_FR', null);
   await MessageService.instance.init();
   await SoundService.instance.init();
+  await AuthService.init(); // Initialiser le service d'authentification
   
   runApp(
     ChangeNotifierProvider(
@@ -49,7 +52,11 @@ class MyApp extends StatelessWidget {
           themeMode: themeProvider.themeMode,
           theme: themeProvider.lightTheme,
           darkTheme: themeProvider.darkTheme,
-          home: const MainNavigation(),
+          initialRoute: '/',
+          routes: {
+            '/': (context) => const MainNavigation(),
+            '/login': (context) => const LoginScreen(),
+          },
         );
       },
     );
