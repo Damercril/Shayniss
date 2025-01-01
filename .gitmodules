@@ -1,0 +1,3 @@
+[submodule "Pretty-Ui"]
+	path = Pretty-Ui
+	url = https://github.com/Damercril/Pretty-Ui.git
