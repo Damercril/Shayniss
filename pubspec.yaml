@@ -1,27 +1,29 @@
 name: shayniss
-description: Application de gestion de salon de beauté
+description: "A new Flutter project."
 publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
+  sdk: '>=3.2.3 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
   flutter_screenutil: ^5.9.0
+  cached_network_image: ^3.3.0
+  font_awesome_flutter: ^10.6.0
+  url_launcher: ^6.2.2
+  photo_view: ^0.14.0
   flutter_local_notifications: ^16.3.0
   table_calendar: ^3.0.9
   intl: ^0.18.1
   image_picker: ^1.0.4
-  url_launcher: ^6.2.2
   shared_preferences: ^2.2.2
   sqflite: ^2.3.0
   path_provider: ^2.1.1
   provider: ^6.1.1
   flutter_svg: ^2.0.9
-  cached_network_image: ^3.3.1
   shimmer: ^3.0.0
   fl_chart: ^0.65.0
   syncfusion_flutter_charts: ^23.2.7
@@ -33,7 +35,6 @@ dependencies:
   record: ^5.0.1
   audioplayers: ^5.2.1
   qr_flutter: ^4.1.0
-  font_awesome_flutter: ^10.6.0
 
 dev_dependencies:
   flutter_test:

@@ -7,14 +7,14 @@ import '../../services/screens/services_screen.dart';
 import '../../dashboard/screens/dashboard_screen.dart';
 import '../../profile/screens/profile_screen.dart';
 
-class MainNavigation extends StatefulWidget {
-  const MainNavigation({super.key});
+class ProfessionalNavigation extends StatefulWidget {
+  const ProfessionalNavigation({super.key});
 
   @override
-  State<MainNavigation> createState() => _MainNavigationState();
+  State<ProfessionalNavigation> createState() => _ProfessionalNavigationState();
 }
 
-class _MainNavigationState extends State<MainNavigation> {
+class _ProfessionalNavigationState extends State<ProfessionalNavigation> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [

@@ -4,7 +4,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../settings/screens/settings_screen.dart';
 import '../../payments/screens/payment_history_screen.dart';
-import '../../../features/auth/services/auth_service.dart';
+import '../../auth/services/auth_service.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -200,20 +200,33 @@ class ProfileScreen extends StatelessWidget {
                 context,
                 'Déconnexion',
                 Icons.logout,
-                isDestructive: true,
                 onTap: () async {
-                  final confirm = await showDialog<bool>(
+                  // Montrer une boîte de dialogue de confirmation
+                  showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
                       title: Text('Déconnexion'),
-                      content: Text('Êtes-vous sûr de vouloir vous déconnecter ?'),
+                      content: Text('Voulez-vous vraiment vous déconnecter ?'),
                       actions: [
                         TextButton(
-                          onPressed: () => Navigator.pop(context, false),
+                          onPressed: () => Navigator.pop(context),
                           child: Text('Annuler'),
                         ),
                         TextButton(
-                          onPressed: () => Navigator.pop(context, true),
+                          onPressed: () async {
+                            // Fermer la boîte de dialogue
+                            Navigator.pop(context);
+                            
+                            // Déconnecter l'utilisateur
+                            await AuthService.logout();
+                            
+                            // Rediriger vers l'écran de connexion et effacer la pile de navigation
+                            Navigator.pushNamedAndRemoveUntil(
+                              context,
+                              '/login',
+                              (route) => false,
+                            );
+                          },
                           child: Text(
                             'Déconnexion',
                             style: TextStyle(color: Colors.red),
@@ -222,17 +235,8 @@ class ProfileScreen extends StatelessWidget {
                       ],
                     ),
                   );
-
-                  if (confirm == true) {
-                    await AuthService.logout();
-                    if (context.mounted) {
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                        '/login',
-                        (route) => false,
-                      );
-                    }
-                  }
                 },
+                isDestructive: true,
               ),
             ],
           ),

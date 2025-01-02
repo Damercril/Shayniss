@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../home/screens/home_screen.dart';
-import '../../calendar/screens/calendar_screen.dart';
-import '../../services/screens/services_screen.dart';
-import '../../dashboard/screens/dashboard_screen.dart';
+import './client_home_screen.dart';
+import './client_appointments_screen.dart';
+import './client_map_screen.dart';
+import './client_search_screen.dart';
 import '../../profile/screens/profile_screen.dart';
 
-class MainNavigation extends StatefulWidget {
-  const MainNavigation({super.key});
+class ClientNavigation extends StatefulWidget {
+  const ClientNavigation({super.key});
 
   @override
-  State<MainNavigation> createState() => _MainNavigationState();
+  State<ClientNavigation> createState() => _ClientNavigationState();
 }
 
-class _MainNavigationState extends State<MainNavigation> {
+class _ClientNavigationState extends State<ClientNavigation> {
   int _selectedIndex = 0;
 
   final List<Widget> _screens = [
-    const HomeScreen(),
-    const CalendarScreen(),
-    const DashboardScreen(),
-    const ServicesScreen(),
+    const ClientHomeScreen(),
+    const ClientAppointmentsScreen(),
+    const ClientMapScreen(),
+    const ClientSearchScreen(),
     const ProfileScreen(),
   ];
 
@@ -39,7 +39,7 @@ class _MainNavigationState extends State<MainNavigation> {
           elevation: 8,
           onPressed: () {
             setState(() {
-              _selectedIndex = 2; // Index du tableau de bord
+              _selectedIndex = 2; // Index de la carte
             });
           },
           backgroundColor: AppColors.primary,
@@ -64,7 +64,7 @@ class _MainNavigationState extends State<MainNavigation> {
               ],
             ),
             child: Icon(
-              Icons.dashboard_rounded,
+              Icons.map_rounded,
               color: Colors.white,
               size: 30.w,
             ),
@@ -98,7 +98,7 @@ class _MainNavigationState extends State<MainNavigation> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _buildNavItem(0, Icons.home_outlined, Icons.home, 'Accueil'),
-                      _buildNavItem(1, Icons.calendar_today_outlined, Icons.calendar_today, 'Calendrier'),
+                      _buildNavItem(1, Icons.calendar_today_outlined, Icons.calendar_today, 'Mes RDV'),
                     ],
                   ),
                 ),
@@ -109,7 +109,7 @@ class _MainNavigationState extends State<MainNavigation> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildNavItem(3, Icons.spa_outlined, Icons.spa, 'Services'),
+                      _buildNavItem(3, Icons.search_outlined, Icons.search, 'Recherche'),
                       _buildNavItem(4, Icons.person_outline_rounded, Icons.person_rounded, 'Profil'),
                     ],
                   ),

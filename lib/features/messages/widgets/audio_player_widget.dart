@@ -5,14 +5,12 @@ import '../../../core/theme/app_colors.dart';
 import '../services/audio_service.dart';
 
 class AudioPlayerWidget extends StatefulWidget {
-  final String audioUrl;
-  final Duration duration;
+  final String audioPath;
   final bool isMe;
 
   const AudioPlayerWidget({
     super.key,
-    required this.audioUrl,
-    required this.duration,
+    required this.audioPath,
     required this.isMe,
   });
 
@@ -38,7 +36,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
       await _audioService.pauseAudio();
       _timer?.cancel();
     } else {
-      await _audioService.playAudio(widget.audioUrl);
+      await _audioService.playAudio(widget.audioPath);
       _startTimer();
     }
 
@@ -51,7 +49,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
-        if (_position < widget.duration) {
+        if (_position < Duration(seconds: 30)) {
           _position += const Duration(seconds: 1);
         } else {
           _isPlaying = false;
@@ -74,39 +72,39 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
     final color = widget.isMe ? Colors.white : AppColors.text;
     final progressColor = widget.isMe ? Colors.white70 : AppColors.primary;
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          icon: Icon(
+    return GestureDetector(
+      onTap: _togglePlay,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
             _isPlaying ? Icons.pause : Icons.play_arrow,
             color: color,
           ),
-          onPressed: _togglePlay,
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 150.w,
-              child: LinearProgressIndicator(
-                value: _position.inSeconds / widget.duration.inSeconds,
-                backgroundColor: color.withOpacity(0.2),
-                valueColor: AlwaysStoppedAnimation<Color>(progressColor),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 150.w,
+                child: LinearProgressIndicator(
+                  value: _position.inSeconds / 30,
+                  backgroundColor: color.withOpacity(0.2),
+                  valueColor: AlwaysStoppedAnimation<Color>(progressColor),
+                ),
               ),
-            ),
-            SizedBox(height: 4.h),
-            Text(
-              _formatDuration(_position),
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: color.withOpacity(0.7),
+              SizedBox(height: 4.h),
+              Text(
+                _formatDuration(_position),
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: color.withOpacity(0.7),
+                ),
               ),
-            ),
-          ],
-        ),
-      ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

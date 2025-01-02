@@ -5,8 +5,9 @@ import 'package:record/record.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 class AudioService {
-  static final AudioService _instance = AudioService._();
+  static final AudioService _instance = AudioService._internal();
   static AudioService get instance => _instance;
+  AudioService._internal();
 
   late final AudioRecorder _audioRecorder;
   final _audioPlayer = AudioPlayer();
@@ -14,16 +15,30 @@ class AudioService {
   Duration _recordingDuration = Duration.zero;
   bool _isRecording = false;
   bool _isPlaying = false;
+  bool _isInitialized = false;
 
-  AudioService._() {
-    _audioRecorder = AudioRecorder();
+  Future<void> initialize() async {
+    if (!_isInitialized) {
+      _audioRecorder = AudioRecorder();
+      _isInitialized = true;
+    }
   }
 
-  Future<void> startRecording() async {
-    final hasPermission = await _audioRecorder.hasPermission();
-    if (hasPermission) {
+  Future<void> dispose() async {
+    if (_isInitialized) {
+      await _audioRecorder.dispose();
+      await _audioPlayer.dispose();
+      _recordingTimer?.cancel();
+      _isInitialized = false;
+    }
+  }
+
+  Future<String?> startRecording() async {
+    if (!_isInitialized) await initialize();
+
+    if (await _audioRecorder.hasPermission()) {
       final directory = await getTemporaryDirectory();
-      final filePath = '${directory.path}/audio_message_${DateTime.now().millisecondsSinceEpoch}.m4a';
+      final String filePath = '${directory.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
       await _audioRecorder.start(
         const RecordConfig(
@@ -37,15 +52,20 @@ class AudioService {
       _isRecording = true;
       _recordingDuration = Duration.zero;
       _startTimer();
+
+      return filePath;
     }
+    return null;
   }
 
   Future<String?> stopRecording() async {
     _stopTimer();
     _isRecording = false;
     
-    final path = await _audioRecorder.stop();
-    return path;
+    if (_isInitialized) {
+      return await _audioRecorder.stop();
+    }
+    return null;
   }
 
   Future<void> cancelRecording() async {
@@ -54,12 +74,12 @@ class AudioService {
     await _audioRecorder.stop();
   }
 
-  Future<void> playAudio(String url) async {
+  Future<void> playAudio(String path) async {
     if (_isPlaying) {
       await _audioPlayer.stop();
     }
 
-    await _audioPlayer.play(UrlSource(url));
+    await _audioPlayer.play(DeviceFileSource(path));
     _isPlaying = true;
 
     _audioPlayer.onPlayerComplete.listen((_) {
@@ -89,10 +109,9 @@ class AudioService {
     _recordingTimer = null;
   }
 
-  void dispose() {
-    _audioRecorder.dispose();
-    _audioPlayer.dispose();
-    _recordingTimer?.cancel();
+  Future<bool> hasPermission() async {
+    if (!_isInitialized) await initialize();
+    return await _audioRecorder.hasPermission();
   }
 
   bool get isRecording => _isRecording;
