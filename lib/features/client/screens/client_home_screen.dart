@@ -4,7 +4,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_colors.dart';
 import 'client_messages_screen.dart';
 import '../services/message_service.dart';
-import '../screens/service_providers_screen.dart'; // Import the ServiceProvidersScreen
+import '../screens/service_providers_screen.dart';
+import '../../../features/appointments/widgets/add_appointment_modal.dart';
+import '../../../features/services/models/service.dart';
+import '../../../features/appointments/widgets/booking_form_modal.dart';
+import '../../../features/appointments/models/booking_details.dart';
+import 'client_map_screen.dart';
 
 class ClientHomeScreen extends StatefulWidget {
   const ClientHomeScreen({Key? key}) : super(key: key);
@@ -456,8 +461,30 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                       ],
                     ),
                     TextButton.icon(
-                      onPressed: () {
-                        // Navigation vers la page de rendez-vous
+                      onPressed: () async {
+                        final booking = await showModalBottomSheet<BookingDetails>(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) => BookingFormModal(
+                            providerFirstName: username.split(' ').first,
+                            providerLastName: username.split(' ').last,
+                            serviceType: 'Service Beauté', // À personnaliser selon le post
+                            servicePhotoUrl: postImage,
+                            initialPrice: 50.0, // À personnaliser selon le service
+                            initialDuration: 60, // À personnaliser selon le service
+                          ),
+                        );
+
+                        if (booking != null) {
+                          // TODO: Sauvegarder la réservation
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Réservation confirmée !'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
                       },
                       icon: Icon(
                         Icons.calendar_today,

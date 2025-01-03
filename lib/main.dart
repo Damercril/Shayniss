@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'features/professional/screens/professional_navigation.dart';
-import 'features/client/screens/client_navigation.dart';
+import 'features/client/screens/client_navigation_screen.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/auth/services/auth_service.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -70,7 +70,7 @@ class MyApp extends StatelessWidget {
 
                     return proSnapshot.data == true
                         ? const ProfessionalNavigation()
-                        : const ClientNavigation();
+                        : const ClientNavigationScreen();
                   },
                 );
               }
@@ -81,7 +81,7 @@ class MyApp extends StatelessWidget {
           routes: {
             '/login': (context) => const LoginScreen(),
             '/professional': (context) => const ProfessionalNavigation(),
-            '/client': (context) => const ClientNavigation(),
+            '/client': (context) => const ClientNavigationScreen(),
           },
         );
       },
