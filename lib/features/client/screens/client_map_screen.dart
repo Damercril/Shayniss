@@ -351,20 +351,16 @@ class _ClientMapScreenState extends State<ClientMapScreen> {
             FlutterMap(
               mapController: _mapController,
               options: MapOptions(
-                center: _currentLocation,
-                zoom: 13.0,
+                initialCenter: _currentLocation,
+                initialZoom: 13.0,
                 maxZoom: 18.0,
                 minZoom: 3.0,
-                interactionOptions: InteractionOptions(
-                  enableScrollWheel: true,
-                  enableMultiFingerGestureRace: true,
-                ),
               ),
               children: [
                 TileLayer(
                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   userAgentPackageName: 'com.shayniss.app',
-                  tileBuilder: (context, tileWidget, tile) {
+                  tileBuilder: (context, widget, tile) {
                     return Container(
                       decoration: BoxDecoration(
                         border: Border.all(
@@ -372,7 +368,7 @@ class _ClientMapScreenState extends State<ClientMapScreen> {
                           width: 0.5,
                         ),
                       ),
-                      child: tileWidget,
+                      child: widget,
                     );
                   },
                 ),
@@ -406,11 +402,10 @@ class _ClientMapScreenState extends State<ClientMapScreen> {
                   FloatingActionButton(
                     heroTag: 'zoomIn',
                     mini: true,
-                    onPressed: () {
-                      final newZoom = _mapController.zoom + 1;
-                      if (newZoom <= 18) {
-                        _mapController.move(_currentLocation, newZoom);
-                      }
+                    onPressed: () async {
+                      final currentZoom = _mapController.camera.zoom;
+                      final newZoom = currentZoom + 1;
+                      _mapController.move(_currentLocation, newZoom);
                     },
                     backgroundColor: Colors.white,
                     child: Icon(Icons.add, color: AppColors.primary),
@@ -419,11 +414,10 @@ class _ClientMapScreenState extends State<ClientMapScreen> {
                   FloatingActionButton(
                     heroTag: 'zoomOut',
                     mini: true,
-                    onPressed: () {
-                      final newZoom = _mapController.zoom - 1;
-                      if (newZoom >= 3) {
-                        _mapController.move(_currentLocation, newZoom);
-                      }
+                    onPressed: () async {
+                      final currentZoom = _mapController.camera.zoom;
+                      final newZoom = currentZoom - 1;
+                      _mapController.move(_currentLocation, newZoom);
                     },
                     backgroundColor: Colors.white,
                     child: Icon(Icons.remove, color: AppColors.primary),

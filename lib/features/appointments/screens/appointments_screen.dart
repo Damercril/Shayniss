@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../../core/theme/app_colors.dart';
+import '../models/appointment.dart';
+import '../repositories/appointment_repository.dart';
+import '../services/availability_service.dart';
+import 'appointment_form_screen.dart';
+import 'appointment_status_dialog.dart';
+import 'appointment_details_service.dart';
 
 class AppointmentsScreen extends StatefulWidget {
   const AppointmentsScreen({super.key});
@@ -11,9 +17,54 @@ class AppointmentsScreen extends StatefulWidget {
 }
 
 class _AppointmentsScreenState extends State<AppointmentsScreen> {
+  final AppointmentRepository _appointmentRepository = AppointmentRepository();
+  final AvailabilityService _availabilityService = AvailabilityService.instance;
+  
   CalendarFormat _calendarFormat = CalendarFormat.week;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
+  List<Appointment> _appointments = [];
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDay = _focusedDay;
+    _loadAppointments();
+  }
+
+  Future<void> _loadAppointments() async {
+    setState(() => _isLoading = true);
+    try {
+      final appointments = await _appointmentRepository.getAppointmentsByDateRange(
+        DateTime(_selectedDay!.year, _selectedDay!.month, _selectedDay!.day),
+        DateTime(_selectedDay!.year, _selectedDay!.month, _selectedDay!.day, 23, 59, 59),
+      );
+      setState(() => _appointments = appointments);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors du chargement des rendez-vous: $e')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _showAppointmentForm() async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AppointmentFormScreen(
+          initialDate: _selectedDay ?? _focusedDay,
+          availabilityService: _availabilityService,
+        ),
+      ),
+    );
+
+    if (result == true) {
+      _loadAppointments();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,18 +95,17 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         children: [
           // Calendrier
           TableCalendar(
-            firstDay: DateTime.utc(2024, 1, 1),
-            lastDay: DateTime.utc(2025, 12, 31),
+            firstDay: DateTime.now().subtract(const Duration(days: 365)),
+            lastDay: DateTime.now().add(const Duration(days: 365)),
             focusedDay: _focusedDay,
             calendarFormat: _calendarFormat,
-            selectedDayPredicate: (day) {
-              return isSameDay(_selectedDay, day);
-            },
+            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
             onDaySelected: (selectedDay, focusedDay) {
               setState(() {
                 _selectedDay = selectedDay;
                 _focusedDay = focusedDay;
               });
+              _loadAppointments();
             },
             onFormatChanged: (format) {
               setState(() {
@@ -93,164 +143,97 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
 
           // Liste des rendez-vous
           Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
-              itemCount: _getAppointmentsForDay(_selectedDay ?? _focusedDay).length,
-              itemBuilder: (context, index) {
-                final appointment = _getAppointmentsForDay(_selectedDay ?? _focusedDay)[index];
-                return _AppointmentCard(appointment: appointment);
-              },
-            ),
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _appointments.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.event_busy,
+                              size: 48.w,
+                              color: Colors.grey,
+                            ),
+                            SizedBox(height: 8.h),
+                            const Text(
+                              'Aucun rendez-vous ce jour',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: EdgeInsets.symmetric(horizontal: 16.w),
+                        itemCount: _appointments.length,
+                        itemBuilder: (context, index) {
+                          final appointment = _appointments[index];
+                          return _AppointmentCard(
+                            appointment: appointment,
+                            onStatusChanged: _loadAppointments,
+                          );
+                        },
+                      ),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // TODO: Ouvrir l'écran de création de rendez-vous
-        },
+        onPressed: _showAppointmentForm,
         backgroundColor: AppColors.primary,
         child: const Icon(Icons.add),
       ),
     );
   }
-
-  List<Map<String, dynamic>> _getAppointmentsForDay(DateTime day) {
-    // TODO: Récupérer les vrais rendez-vous depuis la base de données
-    return [
-      {
-        'time': '09:00',
-        'clientName': 'Emma Laurent',
-        'service': 'Coupe + Brushing',
-        'duration': '1h30',
-        'status': 'confirmed',
-      },
-      {
-        'time': '11:00',
-        'clientName': 'Sophie Martin',
-        'service': 'Coloration',
-        'duration': '2h00',
-        'status': 'pending',
-      },
-      {
-        'time': '14:30',
-        'clientName': 'Marie Dubois',
-        'service': 'Brushing',
-        'duration': '45min',
-        'status': 'confirmed',
-      },
-      {
-        'time': '16:00',
-        'clientName': 'Julie Bernard',
-        'service': 'Coupe',
-        'duration': '1h00',
-        'status': 'cancelled',
-      },
-    ];
-  }
 }
 
-class _AppointmentCard extends StatelessWidget {
-  final Map<String, dynamic> appointment;
+class _AppointmentCard extends StatefulWidget {
+  final Appointment appointment;
+  final VoidCallback onStatusChanged;
 
-  const _AppointmentCard({required this.appointment});
+  const _AppointmentCard({
+    required this.appointment,
+    required this.onStatusChanged,
+  });
 
   @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.only(bottom: 12.h),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: InkWell(
-        onTap: () {
-          // TODO: Ouvrir les détails du rendez-vous
-        },
-        borderRadius: BorderRadius.circular(12.r),
-        child: Padding(
-          padding: EdgeInsets.all(16.w),
-          child: Row(
-            children: [
-              // Heure
-              Container(
-                width: 60.w,
-                height: 60.w,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      appointment['time'],
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    Text(
-                      appointment['duration'],
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(width: 16.w),
+  State<_AppointmentCard> createState() => _AppointmentCardState();
+}
 
-              // Informations
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      appointment['clientName'],
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.text,
-                      ),
-                    ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      appointment['service'],
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+class _AppointmentCardState extends State<_AppointmentCard> {
+  final AppointmentDetailsService _detailsService = AppointmentDetailsService.instance;
+  Map<String, dynamic>? _details;
+  bool _isLoading = true;
 
-              // Statut
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 12.w,
-                  vertical: 6.h,
-                ),
-                decoration: BoxDecoration(
-                  color: _getStatusColor(appointment['status']).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                child: Text(
-                  _getStatusText(appointment['status']),
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: _getStatusColor(appointment['status']),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+  @override
+  void initState() {
+    super.initState();
+    _loadDetails();
+  }
+
+  Future<void> _loadDetails() async {
+    try {
+      final details = await _detailsService.getAppointmentDetails(widget.appointment);
+      setState(() {
+        _details = details;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _showStatusDialog() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AppointmentStatusDialog(
+        appointmentId: widget.appointment.id,
+        currentStatus: widget.appointment.status,
       ),
     );
+
+    if (result == true) {
+      widget.onStatusChanged();
+    }
   }
 
   Color _getStatusColor(String status) {
@@ -261,6 +244,8 @@ class _AppointmentCard extends StatelessWidget {
         return Colors.orange;
       case 'cancelled':
         return Colors.red;
+      case 'completed':
+        return Colors.blue;
       default:
         return Colors.grey;
     }
@@ -274,8 +259,97 @@ class _AppointmentCard extends StatelessWidget {
         return 'En attente';
       case 'cancelled':
         return 'Annulé';
+      case 'completed':
+        return 'Terminé';
       default:
-        return 'Inconnu';
+        return status;
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.only(bottom: 8.h),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: InkWell(
+        onTap: _showStatusDialog,
+        borderRadius: BorderRadius.circular(12.r),
+        child: Padding(
+          padding: EdgeInsets.all(16.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${widget.appointment.dateTime.hour}:${widget.appointment.dateTime.minute.toString().padLeft(2, '0')}',
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(widget.appointment.status).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: Text(
+                      _getStatusText(widget.appointment.status),
+                      style: TextStyle(
+                        color: _getStatusColor(widget.appointment.status),
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8.h),
+              if (_isLoading)
+                const Center(child: CircularProgressIndicator())
+              else ...[
+                Text(
+                  'Client: ${_details?['clientName'] ?? 'Client inconnu'}',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  'Service: ${_details?['serviceName'] ?? 'Service inconnu'}',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                Text(
+                  'Durée: ${_details?['serviceDuration'] ?? 0} min - Prix: ${_details?['servicePrice'] ?? 0}€',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+              if (widget.appointment.notes?.isNotEmpty == true) ...[
+                SizedBox(height: 8.h),
+                Text(
+                  'Notes: ${widget.appointment.notes}',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: AppColors.textSecondary,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

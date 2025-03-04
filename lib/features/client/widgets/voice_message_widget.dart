@@ -16,7 +16,7 @@ class VoiceMessageWidget extends StatefulWidget {
 }
 
 class _VoiceMessageWidgetState extends State<VoiceMessageWidget> {
-  late final AudioRecorder _audioRecorder;
+  final _audioRecorder = Record();
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isRecording = false;
   String? _recordedPath;
@@ -24,7 +24,6 @@ class _VoiceMessageWidgetState extends State<VoiceMessageWidget> {
   @override
   void initState() {
     super.initState();
-    _audioRecorder = AudioRecorder();
   }
 
   @override
@@ -41,11 +40,9 @@ class _VoiceMessageWidgetState extends State<VoiceMessageWidget> {
         final filePath = '${directory.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
         
         await _audioRecorder.start(
-          const RecordConfig(
-            encoder: AudioEncoder.aacLc,
-            bitRate: 128000,
-            sampleRate: 44100,
-          ),
+          encoder: AudioEncoder.aacLc,
+          bitRate: 128000,
+          samplingRate: 44100,
           path: filePath,
         );
         setState(() {

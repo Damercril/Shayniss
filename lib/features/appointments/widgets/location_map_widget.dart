@@ -41,8 +41,8 @@ class _LocationMapWidgetState extends State<LocationMapWidget> {
             child: FlutterMap(
               mapController: _mapController,
               options: MapOptions(
-                center: _selectedLocation,
-                zoom: 13.0,
+                initialCenter: _selectedLocation,
+                initialZoom: 13.0,
                 maxZoom: 18.0,
                 minZoom: 3.0,
                 onTap: (tapPosition, point) {
@@ -51,16 +51,12 @@ class _LocationMapWidgetState extends State<LocationMapWidget> {
                     widget.onLocationSelected(point);
                   });
                 },
-                interactionOptions: InteractionOptions(
-                  enableScrollWheel: true,
-                  enableMultiFingerGestureRace: true,
-                ),
               ),
               children: [
                 TileLayer(
                   urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   userAgentPackageName: 'com.shayniss.app',
-                  tileBuilder: (context, tileWidget, tile) {
+                  tileBuilder: (context, widget, tile) {
                     return Container(
                       decoration: BoxDecoration(
                         border: Border.all(
@@ -68,7 +64,7 @@ class _LocationMapWidgetState extends State<LocationMapWidget> {
                           width: 0.5,
                         ),
                       ),
-                      child: tileWidget,
+                      child: widget,
                     );
                   },
                 ),
@@ -115,8 +111,9 @@ class _LocationMapWidgetState extends State<LocationMapWidget> {
             SizedBox(width: 8.w),
             IconButton(
               icon: Icon(Icons.zoom_in),
-              onPressed: () {
-                final newZoom = _mapController.zoom + 1;
+              onPressed: () async {
+                final currentZoom = _mapController.camera.zoom;
+                final newZoom = currentZoom + 1;
                 if (newZoom <= 18) {
                   _mapController.move(_selectedLocation, newZoom);
                 }
@@ -124,8 +121,9 @@ class _LocationMapWidgetState extends State<LocationMapWidget> {
             ),
             IconButton(
               icon: Icon(Icons.zoom_out),
-              onPressed: () {
-                final newZoom = _mapController.zoom - 1;
+              onPressed: () async {
+                final currentZoom = _mapController.camera.zoom;
+                final newZoom = currentZoom - 1;
                 if (newZoom >= 3) {
                   _mapController.move(_selectedLocation, newZoom);
                 }

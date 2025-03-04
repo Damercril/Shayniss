@@ -9,7 +9,7 @@ class AudioService {
   static AudioService get instance => _instance;
   AudioService._internal();
 
-  late final AudioRecorder _audioRecorder;
+  final _audioRecorder = Record();
   final _audioPlayer = AudioPlayer();
   Timer? _recordingTimer;
   Duration _recordingDuration = Duration.zero;
@@ -19,7 +19,6 @@ class AudioService {
 
   Future<void> initialize() async {
     if (!_isInitialized) {
-      _audioRecorder = AudioRecorder();
       _isInitialized = true;
     }
   }
@@ -41,11 +40,9 @@ class AudioService {
       final String filePath = '${directory.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
       await _audioRecorder.start(
-        const RecordConfig(
-          encoder: AudioEncoder.aacLc,
-          bitRate: 128000,
-          sampleRate: 44100,
-        ),
+        encoder: AudioEncoder.aacLc,
+        bitRate: 128000,
+        samplingRate: 44100,
         path: filePath,
       );
 

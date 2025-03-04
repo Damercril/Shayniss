@@ -39,8 +39,75 @@ class Availability {
     }
 
     // Pour les disponibilités récurrentes
-    // TODO: Implémenter la logique de récurrence avec le RRULE
-    return true;
+    if (recurrenceRule == null) return false;
+
+    final rrule = RecurrenceRule.parse(recurrenceRule!);
+    if (rrule == null) return false;
+
+    // Vérifier si la date est dans la plage de récurrence
+    if (rrule.until != null && dateTime.isAfter(rrule.until!)) {
+      return false;
+    }
+
+    // Vérifier si l'heure est dans la plage horaire
+    final timeOfDay = TimeOfDay.fromDateTime(dateTime);
+    final startTimeOfDay = TimeOfDay.fromDateTime(startTime);
+    final endTimeOfDay = TimeOfDay.fromDateTime(endTime);
+
+    if (!_isTimeBetween(timeOfDay, startTimeOfDay, endTimeOfDay)) {
+      return false;
+    }
+
+    // Vérifier la récurrence selon la fréquence
+    switch (rrule.frequency) {
+      case 'DAILY':
+        if (rrule.interval != null) {
+          final days = dateTime.difference(startTime).inDays;
+          return days % rrule.interval! == 0;
+        }
+        return true;
+
+      case 'WEEKLY':
+        // Vérifier si le jour de la semaine est inclus
+        final dayOfWeek = dateTime.weekday;
+        if (rrule.byDay != null && !rrule.byDay!.contains(dayOfWeek)) {
+          return false;
+        }
+        if (rrule.interval != null) {
+          final weeks = dateTime.difference(startTime).inDays ~/ 7;
+          return weeks % rrule.interval! == 0;
+        }
+        return true;
+
+      case 'MONTHLY':
+        if (rrule.byMonthDay != null) {
+          // Vérifier le jour du mois
+          return rrule.byMonthDay!.contains(dateTime.day);
+        }
+        if (rrule.byDay != null) {
+          // Vérifier la position du jour dans le mois (ex: 2ème lundi)
+          final weekOfMonth = (dateTime.day - 1) ~/ 7 + 1;
+          final dayOfWeek = dateTime.weekday;
+          return rrule.byDay!.any((day) => 
+            day.weekday == dayOfWeek && day.position == weekOfMonth);
+        }
+        if (rrule.interval != null) {
+          final months = (dateTime.year - startTime.year) * 12 + 
+                        dateTime.month - startTime.month;
+          return months % rrule.interval! == 0;
+        }
+        return true;
+
+      default:
+        return false;
+    }
+  }
+
+  bool _isTimeBetween(TimeOfDay time, TimeOfDay start, TimeOfDay end) {
+    final now = time.hour * 60 + time.minute;
+    final startMinutes = start.hour * 60 + start.minute;
+    final endMinutes = end.hour * 60 + end.minute;
+    return now >= startMinutes && now <= endMinutes;
   }
 
   Map<String, dynamic> toMap() {
@@ -97,37 +164,63 @@ class Availability {
 }
 
 class RecurrenceRule {
-  static String daily({int? interval, DateTime? until, int? count}) {
-    final List<String> parts = ['FREQ=DAILY'];
-    if (interval != null) parts.add('INTERVAL=$interval');
-    if (until != null) parts.add('UNTIL=${_formatDate(until)}');
-    if (count != null) parts.add('COUNT=$count');
-    return parts.join(';');
-  }
+  final String frequency;
+  final int? interval;
+  final List<int>? byDay;
+  final List<int>? byMonthDay;
+  final DateTime? until;
+  final int? count;
 
-  static String weekly({
-    int? interval,
-    List<int>? byDayOfWeek, // 1 = Monday, 7 = Sunday
-    DateTime? until,
-    int? count,
-  }) {
-    final List<String> parts = ['FREQ=WEEKLY'];
-    if (interval != null) parts.add('INTERVAL=$interval');
-    if (byDayOfWeek != null && byDayOfWeek.isNotEmpty) {
-      final days = byDayOfWeek.map((day) => _getDayName(day)).join(',');
-      parts.add('BYDAY=$days');
+  RecurrenceRule({
+    required this.frequency,
+    this.interval,
+    this.byDay,
+    this.byMonthDay,
+    this.until,
+    this.count,
+  });
+
+  static RecurrenceRule? parse(String rrule) {
+    final parts = rrule.split(';');
+    final Map<String, String> params = {};
+    
+    for (var part in parts) {
+      final keyValue = part.split('=');
+      if (keyValue.length == 2) {
+        params[keyValue[0]] = keyValue[1];
+      }
     }
-    if (until != null) parts.add('UNTIL=${_formatDate(until)}');
-    if (count != null) parts.add('COUNT=$count');
-    return parts.join(';');
+
+    if (!params.containsKey('FREQ')) return null;
+
+    return RecurrenceRule(
+      frequency: params['FREQ']!,
+      interval: params['INTERVAL'] != null ? int.tryParse(params['INTERVAL']!) : null,
+      byDay: params['BYDAY']?.split(',').map((day) {
+        final match = RegExp(r'(-?\d+)?([A-Z]{2})').firstMatch(day);
+        if (match != null) {
+          final weekday = _weekdayFromString(match.group(2)!);
+          return weekday;
+        }
+        return null;
+      }).whereType<int>().toList(),
+      byMonthDay: params['BYMONTHDAY']?.split(',').map(int.parse).toList(),
+      until: params['UNTIL'] != null ? DateTime.parse(params['UNTIL']!) : null,
+      count: params['COUNT'] != null ? int.parse(params['COUNT']!) : null,
+    );
   }
 
-  static String _formatDate(DateTime date) {
-    return date.toIso8601String().replaceAll(RegExp(r'[-:]'), '').split('.')[0] + 'Z';
+  static int? _weekdayFromString(String day) {
+    const days = {
+      'MO': 1, 'TU': 2, 'WE': 3, 'TH': 4, 'FR': 5, 'SA': 6, 'SU': 7
+    };
+    return days[day];
   }
+}
 
-  static String _getDayName(int day) {
-    const days = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'];
-    return days[(day - 1) % 7];
-  }
+class WeekdayInMonth {
+  final int weekday;
+  final int position;
+
+  WeekdayInMonth(this.weekday, this.position);
 }
