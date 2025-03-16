@@ -1,22 +1,116 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/utils/service_images.dart';
+import '../../../core/services/category_service.dart';
 import '../widgets/service_photos_gallery.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../services/share_service.dart';
 
-class ServicesScreen extends StatelessWidget {
+class ServicesScreen extends StatefulWidget {
   const ServicesScreen({super.key});
+
+  @override
+  State<ServicesScreen> createState() => _ServicesScreenState();
+}
+
+class _ServicesScreenState extends State<ServicesScreen> {
+  final CategoryService _categoryService = CategoryService();
+
+  Future<List<String>> _loadServiceImages() async {
+    return await _categoryService.getRandomServiceImages();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: _buildAppBar(),
-      body: _buildBody(context),
+      body: FutureBuilder<List<String>>(
+        future: _loadServiceImages(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text('Erreur: ${snapshot.error}'));
+          }
+
+          final serviceImages = snapshot.data ?? [];
+
+          return ListView(
+            padding: EdgeInsets.all(16.w),
+            children: [
+              _buildCategorySection(context, 'Coiffure', [
+                _buildServiceCard(
+                  context,
+                  'Coupe Femme',
+                  '1h30',
+                  '45€',
+                  Icons.content_cut,
+                  serviceImages,
+                ),
+                _buildServiceCard(
+                  context,
+                  'Coloration',
+                  '2h00',
+                  '65€',
+                  Icons.palette,
+                  serviceImages,
+                ),
+                _buildServiceCard(
+                  context,
+                  'Brushing',
+                  '45min',
+                  '30€',
+                  Icons.brush,
+                  serviceImages,
+                ),
+              ]),
+              SizedBox(height: 24.h),
+              _buildCategorySection(context, 'Manucure', [
+                _buildServiceCard(
+                  context,
+                  'Manucure Simple',
+                  '45min',
+                  '25€',
+                  Icons.spa,
+                  serviceImages,
+                ),
+                _buildServiceCard(
+                  context,
+                  'Pose Gel',
+                  '1h15',
+                  '45€',
+                  Icons.diamond,
+                  serviceImages,
+                ),
+              ]),
+              SizedBox(height: 24.h),
+              _buildCategorySection(context, 'Maquillage', [
+                _buildServiceCard(
+                  context,
+                  'Maquillage Jour',
+                  '45min',
+                  '35€',
+                  Icons.face,
+                  serviceImages,
+                ),
+                _buildServiceCard(
+                  context,
+                  'Maquillage Soirée',
+                  '1h00',
+                  '50€',
+                  Icons.face_retouching_natural,
+                  serviceImages,
+                ),
+              ]),
+            ],
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddServiceModal(context),
         backgroundColor: AppColors.primary,
@@ -46,71 +140,6 @@ class ServicesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBody(BuildContext context) {
-    return ListView(
-      padding: EdgeInsets.all(16.w),
-      children: [
-        _buildCategorySection(context, 'Coiffure', [
-          _buildServiceCard(
-            context,
-            'Coupe Femme',
-            '1h30',
-            '45€',
-            Icons.content_cut,
-          ),
-          _buildServiceCard(
-            context,
-            'Coloration',
-            '2h00',
-            '65€',
-            Icons.palette,
-          ),
-          _buildServiceCard(
-            context,
-            'Brushing',
-            '45min',
-            '30€',
-            Icons.brush,
-          ),
-        ]),
-        SizedBox(height: 24.h),
-        _buildCategorySection(context, 'Manucure', [
-          _buildServiceCard(
-            context,
-            'Manucure Simple',
-            '45min',
-            '25€',
-            Icons.spa,
-          ),
-          _buildServiceCard(
-            context,
-            'Pose Gel',
-            '1h15',
-            '45€',
-            Icons.diamond,
-          ),
-        ]),
-        SizedBox(height: 24.h),
-        _buildCategorySection(context, 'Maquillage', [
-          _buildServiceCard(
-            context,
-            'Maquillage Jour',
-            '45min',
-            '35€',
-            Icons.face,
-          ),
-          _buildServiceCard(
-            context,
-            'Maquillage Soirée',
-            '1h00',
-            '50€',
-            Icons.face_retouching_natural,
-          ),
-        ]),
-      ],
-    );
-  }
-
   Widget _buildCategorySection(BuildContext context, String title, List<Widget> services) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -135,10 +164,8 @@ class ServicesScreen extends StatelessWidget {
     String duration,
     String price,
     IconData icon,
+    List<String> serviceImages,
   ) {
-    // Obtenir des images aléatoires pour ce service
-    final List<String> serviceImages = ServiceImages.getRandomServiceImages();
-
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       decoration: BoxDecoration(

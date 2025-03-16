@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/constants/service_categories.dart';
+import '../../../core/services/category_service.dart';
+import '../../../core/models/service_category.dart';
 import '../../../core/widgets/common_app_bar.dart';
 import '../../appointments/widgets/add_appointment_modal.dart';
 import '../../services/models/service.dart';
@@ -17,41 +18,57 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // Images pour les services
-  final Map<String, String> serviceImages = const {
-    'Coiffure': 'https://images.unsplash.com/photo-1600948836101-f9ffda59d250?w=500',
-    'Maquillage': 'https://images.unsplash.com/photo-1457972729786-0411a3b2b626?w=500',
-    'Ongles': 'https://images.unsplash.com/photo-1632345031435-8727f6897d53?w=500',
-    'Soins': 'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=500',
-    'Massage': 'https://images.unsplash.com/photo-1519823551278-64ac92734fb1?w=500',
-    'Épilation': 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=500',
-  };
+  final CategoryService _categoryService = CategoryService();
+  List<ServiceCategory> _categories = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      setState(() => _isLoading = true);
+      final categories = await _categoryService.getAllCategories();
+      setState(() {
+        _categories = categories;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading categories: $e');
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            const SliverToBoxAdapter(
-              child: CommonAppBar(
-                title: 'Shayniss',
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildServicesSection(),
-                  _buildUpcomingAppointments(),
-                  _buildServicesFeed(),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SafeArea(
+              child: CustomScrollView(
+                slivers: [
+                  const SliverToBoxAdapter(
+                    child: CommonAppBar(
+                      title: 'Shayniss',
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildServicesSection(),
+                        _buildUpcomingAppointments(),
+                        _buildServicesFeed(),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -64,9 +81,9 @@ class _HomeScreenState extends State<HomeScreen> {
         child: ListView.builder(
           padding: EdgeInsets.symmetric(horizontal: 16.w),
           scrollDirection: Axis.horizontal,
-          itemCount: serviceCategories.length,
+          itemCount: _categories.length,
           itemBuilder: (context, index) {
-            return _buildServiceItem(serviceCategories[index]);
+            return _buildServiceItem(_categories[index]);
           },
         ),
       ),
@@ -84,7 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               image: DecorationImage(
-                image: NetworkImage(serviceImages[category.name]!),
+                image: NetworkImage(category.icon),
                 fit: BoxFit.cover,
               ),
               border: Border.all(
@@ -199,7 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildServicesFeed() {
     return Column(
-      children: serviceCategories.map((category) {
+      children: _categories.map((category) {
         return _buildServicePost(category);
       }).toList(),
     );
@@ -232,7 +249,7 @@ class _HomeScreenState extends State<HomeScreen> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               image: DecorationImage(
-                image: NetworkImage(serviceImages[category.name]!),
+                image: NetworkImage(category.icon),
                 fit: BoxFit.cover,
               ),
             ),
@@ -270,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
       height: 300.h,
       decoration: BoxDecoration(
         image: DecorationImage(
-          image: NetworkImage(serviceImages[category.name]!),
+          image: NetworkImage(category.icon),
           fit: BoxFit.cover,
         ),
       ),
