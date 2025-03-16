@@ -18,6 +18,12 @@ CREATE TABLE IF NOT EXISTS professionals (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Create trigger to update updated_at
+CREATE TRIGGER update_professionals_updated_at
+    BEFORE UPDATE ON professionals
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
 -- Add RLS policies
 ALTER TABLE professionals ENABLE ROW LEVEL SECURITY;
 
@@ -33,12 +39,6 @@ ON professionals FOR ALL
 TO authenticated
 USING (auth.uid() = id)
 WITH CHECK (auth.uid() = id);
-
--- Create trigger to update updated_at
-CREATE TRIGGER update_professionals_updated_at
-    BEFORE UPDATE ON professionals
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
 
 -- Insert demo professional
 INSERT INTO professionals (
