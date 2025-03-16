@@ -1,7 +1,7 @@
 -- Create appointments table
 CREATE TABLE IF NOT EXISTS appointments (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    professional_id UUID NOT NULL REFERENCES auth.users(id),
+    professional_id UUID NOT NULL REFERENCES professionals(id),
     service_id UUID NOT NULL REFERENCES services(id),
     client_id UUID NOT NULL REFERENCES auth.users(id),
     date_time TIMESTAMP WITH TIME ZONE NOT NULL,

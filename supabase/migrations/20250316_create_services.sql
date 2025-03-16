@@ -1,7 +1,7 @@
 -- Create services table
 CREATE TABLE IF NOT EXISTS services (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    professional_id UUID NOT NULL REFERENCES auth.users(id),
+    professional_id UUID NOT NULL REFERENCES professionals(id),
     category_id UUID NOT NULL REFERENCES service_categories(id),
     name VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
