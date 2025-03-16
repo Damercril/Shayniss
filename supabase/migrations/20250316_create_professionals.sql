@@ -1,12 +1,19 @@
 -- Create professionals table
 CREATE TABLE IF NOT EXISTS professionals (
     id UUID PRIMARY KEY REFERENCES auth.users(id),
-    name VARCHAR(255) NOT NULL,
+    first_name VARCHAR(255) NOT NULL,
+    last_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     phone VARCHAR(20),
-    bio TEXT,
-    profile_image_url TEXT,
-    is_active BOOLEAN DEFAULT true,
+    address VARCHAR(255),
+    city VARCHAR(100),
+    description TEXT,
+    profile_picture_url TEXT,
+    cover_picture_url TEXT,
+    rating DECIMAL(3, 2) DEFAULT 0.0,
+    review_count INTEGER DEFAULT 0,
+    is_available BOOLEAN DEFAULT true,
+    status VARCHAR(50),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -18,7 +25,7 @@ ALTER TABLE professionals ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can view active professionals"
 ON professionals FOR SELECT
 TO authenticated
-USING (is_active = true);
+USING (is_available = true);
 
 -- Allow professionals to view and update their own profile
 CREATE POLICY "Professionals can manage their own profile"
@@ -34,5 +41,28 @@ CREATE TRIGGER update_professionals_updated_at
     EXECUTE FUNCTION update_updated_at_column();
 
 -- Insert demo professional
-INSERT INTO professionals (id, name, email, phone, bio, is_active) VALUES
-    ('00000000-0000-0000-0000-000000000001', 'Sarah Martin', 'sarah.martin@example.com', '+33612345678', 'Coiffeuse et maquilleuse professionnelle avec plus de 10 ans d''expérience.', true);
+INSERT INTO professionals (
+    id, 
+    first_name,
+    last_name,
+    email,
+    phone,
+    address,
+    city,
+    description,
+    profile_picture_url,
+    is_available,
+    status
+) VALUES (
+    '00000000-0000-0000-0000-000000000001',
+    'Sarah',
+    'Martin',
+    'sarah.martin@example.com',
+    '+33612345678',
+    '123 Rue de la Beauté',
+    'Paris',
+    'Coiffeuse et maquilleuse professionnelle avec plus de 10 ans d''expérience.',
+    'https://picsum.photos/id/64/400/400',
+    true,
+    'active'
+);
