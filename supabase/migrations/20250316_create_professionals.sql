@@ -1,4 +1,4 @@
--- Create professionals table
+-- Step 1: Create professionals table and insert data
 CREATE TABLE IF NOT EXISTS professionals (
     id UUID PRIMARY KEY REFERENCES auth.users(id),
     first_name VARCHAR(255) NOT NULL,
@@ -19,26 +19,18 @@ CREATE TABLE IF NOT EXISTS professionals (
 );
 
 -- Create trigger to update updated_at
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
 CREATE TRIGGER update_professionals_updated_at
     BEFORE UPDATE ON professionals
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
-
--- Add RLS policies
-ALTER TABLE professionals ENABLE ROW LEVEL SECURITY;
-
--- Allow read access to all authenticated users for active professionals
-CREATE POLICY "Anyone can view active professionals"
-ON professionals FOR SELECT
-TO authenticated
-USING (is_available = true);
-
--- Allow professionals to view and update their own profile
-CREATE POLICY "Professionals can manage their own profile"
-ON professionals FOR ALL
-TO authenticated
-USING (auth.uid() = id)
-WITH CHECK (auth.uid() = id);
 
 -- Insert demo professional
 INSERT INTO professionals (
@@ -66,3 +58,19 @@ INSERT INTO professionals (
     true,
     'active'
 );
+
+-- Step 2: Add RLS policies
+ALTER TABLE professionals ENABLE ROW LEVEL SECURITY;
+
+-- Allow read access to all authenticated users for active professionals
+CREATE POLICY "Anyone can view active professionals"
+ON professionals FOR SELECT
+TO authenticated
+USING (is_available = true);
+
+-- Allow professionals to view and update their own profile
+CREATE POLICY "Professionals can manage their own profile"
+ON professionals FOR ALL
+TO authenticated
+USING (auth.uid() = id)
+WITH CHECK (auth.uid() = id);
