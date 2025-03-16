@@ -15,6 +15,7 @@ Story _$StoryFromJson(Map<String, dynamic> json) => Story(
       expiresAt: DateTime.parse(json['expires_at'] as String),
       seen: json['seen'] as bool? ?? false,
       views: (json['views'] as num?)?.toInt() ?? 0,
+      thumbnailUrl: json['thumbnail_url'] as String?,
     );
 
 Map<String, dynamic> _$StoryToJson(Story instance) => <String, dynamic>{
@@ -26,4 +27,5 @@ Map<String, dynamic> _$StoryToJson(Story instance) => <String, dynamic>{
       'expires_at': instance.expiresAt.toIso8601String(),
       'seen': instance.seen,
       'views': instance.views,
+      'thumbnail_url': instance.thumbnailUrl,
     };

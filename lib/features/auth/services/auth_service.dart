@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_type.dart';
 
 class AuthService {
@@ -7,6 +8,13 @@ class AuthService {
   static const String _userTypeKey = 'user_type';
   static const String _themeKey = 'theme_mode';
   static const String _phoneKey = 'phone_number';
+
+  static final AuthService _instance = AuthService._internal();
+  factory AuthService() => _instance;
+
+  AuthService._internal();
+
+  final SupabaseClient _client = Supabase.instance.client;
 
   /// Connecte l'utilisateur avec son numéro de téléphone et son code PIN
   static Future<bool> login({
@@ -108,4 +116,53 @@ class AuthService {
     final userType = await getCurrentUserType();
     return userType == UserType.client;
   }
+
+  Future<String?> getCurrentUserId() async {
+    return _client.auth.currentUser?.id;
+  }
+
+  Future<void> signOut() async {
+    await _client.auth.signOut();
+  }
+
+  Future<AuthResponse> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
+    return await _client.auth.signInWithPassword(
+      email: email,
+      password: password,
+    );
+  }
+
+  Future<AuthResponse> signUpWithEmail({
+    required String email,
+    required String password,
+    required Map<String, dynamic> data,
+  }) async {
+    return await _client.auth.signUp(
+      email: email,
+      password: password,
+      data: data,
+    );
+  }
+
+  Future<void> resetPassword(String email) async {
+    await _client.auth.resetPasswordForEmail(
+      email,
+      redirectTo: 'io.supabase.shayniss://reset-callback/',
+    );
+  }
+
+  Future<void> updatePassword(String newPassword) async {
+    await _client.auth.updateUser(
+      UserAttributes(
+        password: newPassword,
+      ),
+    );
+  }
+
+  Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
+
+  bool get isAuthenticated => _client.auth.currentUser != null;
 }

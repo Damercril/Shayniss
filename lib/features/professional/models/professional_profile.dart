@@ -1,52 +1,78 @@
+import 'package:json_annotation/json_annotation.dart';
+
+part 'professional_profile.g.dart';
+
+@JsonSerializable()
 class ProfessionalProfile {
   final String id;
-  final String username; // Identifiant unique @
-  final String fullName;
+  final String name;
   final String email;
-  final String phoneNumber;
-  final String profilePicture;
-  final String bio;
-  final List<Service> services;
-  final List<Review> reviews;
+  final String? phone;
+  final String? address;
+  final String? city;
+  final String? description;
+  final String? profilePictureUrl;
+  final String? coverPictureUrl;
+  final List<String> categories;
   final double rating;
-  final BusinessHours businessHours;
-  final Location location;
-  final List<String> certificates;
-  final List<String> portfolioImages;
-  final bool isVerified;
-  final Map<String, dynamic> statistics; // Pour les analyses et statistiques
+  final int reviewCount;
+  final bool isAvailable;
+  final String? status;
 
   ProfessionalProfile({
     required this.id,
-    required this.username,
-    required this.fullName,
+    required this.name,
     required this.email,
-    required this.phoneNumber,
-    required this.profilePicture,
-    required this.bio,
-    required this.services,
-    required this.reviews,
-    required this.rating,
-    required this.businessHours,
-    required this.location,
-    required this.certificates,
-    required this.portfolioImages,
-    required this.isVerified,
-    required this.statistics,
+    this.phone,
+    this.address,
+    this.city,
+    this.description,
+    this.profilePictureUrl,
+    this.coverPictureUrl,
+    this.categories = const [],
+    this.rating = 0.0,
+    this.reviewCount = 0,
+    this.isAvailable = true,
+    this.status,
   });
 
-  factory ProfessionalProfile.fromJson(Map<String, dynamic> json) {
-    // Implémentation de la conversion JSON
-    return ProfessionalProfile(
-      // ... conversion des champs
-    );
-  }
+  factory ProfessionalProfile.fromJson(Map<String, dynamic> json) =>
+      _$ProfessionalProfileFromJson(json);
 
-  Map<String, dynamic> toJson() {
-    // Implémentation de la conversion vers JSON
-    return {
-      // ... conversion des champs
-    };
+  Map<String, dynamic> toJson() => _$ProfessionalProfileToJson(this);
+
+  ProfessionalProfile copyWith({
+    String? id,
+    String? name,
+    String? email,
+    String? phone,
+    String? address,
+    String? city,
+    String? description,
+    String? profilePictureUrl,
+    String? coverPictureUrl,
+    List<String>? categories,
+    double? rating,
+    int? reviewCount,
+    bool? isAvailable,
+    String? status,
+  }) {
+    return ProfessionalProfile(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      phone: phone ?? this.phone,
+      address: address ?? this.address,
+      city: city ?? this.city,
+      description: description ?? this.description,
+      profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
+      coverPictureUrl: coverPictureUrl ?? this.coverPictureUrl,
+      categories: categories ?? this.categories,
+      rating: rating ?? this.rating,
+      reviewCount: reviewCount ?? this.reviewCount,
+      isAvailable: isAvailable ?? this.isAvailable,
+      status: status ?? this.status,
+    );
   }
 }
 

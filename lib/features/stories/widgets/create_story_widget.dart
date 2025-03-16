@@ -11,10 +11,10 @@ class CreateStoryWidget extends StatefulWidget {
   final VoidCallback? onStoryCreated;
 
   const CreateStoryWidget({
-    Key? key,
+    super.key,
     required this.professionalId,
     this.onStoryCreated,
-  }) : super(key: key);
+  });
 
   @override
   State<CreateStoryWidget> createState() => _CreateStoryWidgetState();
@@ -28,14 +28,20 @@ class _CreateStoryWidgetState extends State<CreateStoryWidget> {
   Future<void> _pickAndUploadMedia(ImageSource source, bool isVideo) async {
     try {
       final XFile? file = isVideo
-          ? await _picker.pickVideo(source: source)
-          : await _picker.pickImage(source: source);
+          ? await _picker.pickVideo(
+              source: source,
+              maxDuration: const Duration(seconds: 30),
+            )
+          : await _picker.pickImage(
+              source: source,
+              imageQuality: 85,
+              maxWidth: 1080,
+              maxHeight: 1920,
+            );
 
       if (file == null) return;
 
-      setState(() {
-        _isLoading = true;
-      });
+      setState(() => _isLoading = true);
 
       await _uploadService.uploadStory(
         professionalId: widget.professionalId,
@@ -43,29 +49,20 @@ class _CreateStoryWidgetState extends State<CreateStoryWidget> {
         isVideo: isVideo,
       );
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Story publiée avec succès'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        widget.onStoryCreated?.call();
-      }
+      widget.onStoryCreated?.call();
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors de la publication : $e'),
-            backgroundColor: Colors.red,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Erreur lors du téléchargement de la story : $e',
+            style: TextStyle(fontSize: 14.sp),
           ),
-        );
-      }
+          backgroundColor: Colors.red,
+        ),
+      );
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -73,52 +70,59 @@ class _CreateStoryWidgetState extends State<CreateStoryWidget> {
   void _showMediaPicker() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(20.r),
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(Icons.camera_alt),
-                title: Text('Prendre une photo'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickAndUploadMedia(ImageSource.camera, false);
-                },
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: Text(
+                'Prendre une photo',
+                style: TextStyle(fontSize: 16.sp),
               ),
-              ListTile(
-                leading: Icon(Icons.photo_library),
-                title: Text('Choisir une photo'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickAndUploadMedia(ImageSource.gallery, false);
-                },
+              onTap: () {
+                Navigator.pop(context);
+                _pickAndUploadMedia(ImageSource.camera, false);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: Text(
+                'Choisir une photo',
+                style: TextStyle(fontSize: 16.sp),
               ),
-              ListTile(
-                leading: Icon(Icons.videocam),
-                title: Text('Enregistrer une vidéo'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickAndUploadMedia(ImageSource.camera, true);
-                },
+              onTap: () {
+                Navigator.pop(context);
+                _pickAndUploadMedia(ImageSource.gallery, false);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.videocam),
+              title: Text(
+                'Enregistrer une vidéo',
+                style: TextStyle(fontSize: 16.sp),
               ),
-              ListTile(
-                leading: Icon(Icons.video_library),
-                title: Text('Choisir une vidéo'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickAndUploadMedia(ImageSource.gallery, true);
-                },
+              onTap: () {
+                Navigator.pop(context);
+                _pickAndUploadMedia(ImageSource.camera, true);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.video_library),
+              title: Text(
+                'Choisir une vidéo',
+                style: TextStyle(fontSize: 16.sp),
               ),
-            ],
-          ),
+              onTap: () {
+                Navigator.pop(context);
+                _pickAndUploadMedia(ImageSource.gallery, true);
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -128,59 +132,47 @@ class _CreateStoryWidgetState extends State<CreateStoryWidget> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        Container(
-          width: 85.w,
-          margin: EdgeInsets.only(right: 16.w),
-          child: Column(
-            children: [
-              GestureDetector(
-                onTap: _showMediaPicker,
-                child: Container(
-                  width: 85.w,
-                  height: 85.w,
+        Padding(
+          padding: EdgeInsets.only(right: 12.w),
+          child: GestureDetector(
+            onTap: _showMediaPicker,
+            child: Column(
+              children: [
+                Container(
+                  width: 68.w,
+                  height: 68.w,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [
-                        AppColors.primary,
-                        AppColors.primary.withOpacity(0.8),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                    border: Border.all(
+                      color: AppColors.primary,
+                      width: 2,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
                   ),
-                  child: Icon(
-                    Icons.add,
-                    color: Colors.white,
-                    size: 32.sp,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.add,
+                      color: AppColors.primary,
+                      size: 32.sp,
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(height: 6.h),
-              Text(
-                'Nouvelle story',
-                style: TextStyle(
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w500,
+                SizedBox(height: 4.h),
+                Text(
+                  'Nouvelle story',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: Colors.grey[600],
+                  ),
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-        if (_isLoading)
-          Positioned.fill(
-            child: LoadingOverlay(),
-          ),
+        if (_isLoading) const LoadingOverlay(),
       ],
     );
   }

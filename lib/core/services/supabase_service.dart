@@ -1,24 +1,26 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../config/supabase_config.dart';
 
 class SupabaseService {
-  static SupabaseService? _instance;
-  late final SupabaseClient client;
+  static final SupabaseClient client = Supabase.instance.client;
 
-  SupabaseService._() {
-    client = Supabase.instance.client;
-  }
-
-  static SupabaseService get instance {
-    _instance ??= SupabaseService._();
-    return _instance!;
-  }
-
-  Future<void> initialize() async {
+  static Future<void> initialize() async {
     await Supabase.initialize(
-      url: SupabaseConfig.url,
-      anonKey: SupabaseConfig.anonKey,
+      url: const String.fromEnvironment('SUPABASE_URL'),
+      anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY'),
+      debug: false,
     );
+  }
+
+  static Future<void> signOut() async {
+    await client.auth.signOut();
+  }
+
+  static String? getCurrentUserId() {
+    return client.auth.currentUser?.id;
+  }
+
+  static bool isAuthenticated() {
+    return client.auth.currentUser != null;
   }
 
   // Clients

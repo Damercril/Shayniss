@@ -1,54 +1,91 @@
 import 'dart:io';
 import 'package:path/path.dart' as path;
+import 'package:video_thumbnail/video_thumbnail.dart';
 import '../../../core/services/base_storage_service.dart';
 import 'story_database_service.dart';
+import '../models/story.dart';
 
 class StoryUploadService {
-  static final StoryUploadService _instance = StoryUploadService._internal();
-  factory StoryUploadService() => _instance;
-  StoryUploadService._internal();
-
   final BaseStorageService _storageService = BaseStorageService('stories');
-  final StoryDatabaseService _storyService = StoryDatabaseService();
+  final StoryDatabaseService _databaseService = StoryDatabaseService();
 
-  Future<void> uploadStory({
+  Future<Story> uploadStory({
     required String professionalId,
     required File file,
     required bool isVideo,
   }) async {
+    final String fileExtension = path.extension(file.path).toLowerCase();
+    String? thumbnailUrl;
+
+    if (isVideo) {
+      if (!_isValidVideoExtension(fileExtension)) {
+        throw Exception('Format vidéo non supporté. Utilisez MP4, MOV ou AVI.');
+      }
+
+      // Générer une miniature pour la vidéo
+      final thumbnailFile = await _generateVideoThumbnail(file);
+      if (thumbnailFile != null) {
+        thumbnailUrl = await _storageService.uploadFile(
+          File(thumbnailFile),
+          bucket: 'thumbnails',
+        );
+      }
+    } else {
+      if (!_isValidImageExtension(fileExtension)) {
+        throw Exception('Format image non supporté. Utilisez JPG, JPEG ou PNG.');
+      }
+    }
+
+    // Uploader le fichier principal
+    final url = await _storageService.uploadFile(file);
+
+    // Créer l'entrée dans la base de données
+    return await _databaseService.createStory(
+      professionalId: professionalId,
+      url: url,
+      type: isVideo ? 'video' : 'image',
+      thumbnailUrl: thumbnailUrl,
+    );
+  }
+
+  Future<String?> _generateVideoThumbnail(File videoFile) async {
     try {
-      // Générer un nom de fichier unique
-      final extension = path.extension(file.path);
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}$extension';
-      final filePath = '$professionalId/$fileName';
-
-      // Upload du fichier vers Supabase Storage
-      final url = await _storageService.uploadFile(
-        file: file,
-        path: filePath,
+      final thumbnailPath = await VideoThumbnail.thumbnailFile(
+        video: videoFile.path,
+        imageFormat: ImageFormat.JPEG,
+        maxWidth: 512,
+        quality: 75,
       );
-
-      // Créer l'entrée dans la base de données
-      await _storyService.createStory(
-        professionalId: professionalId,
-        url: url,
-        type: isVideo ? 'video' : 'image',
-      );
+      return thumbnailPath;
     } catch (e) {
-      print('Error uploading story: $e');
-      rethrow;
+      print('Error generating video thumbnail: $e');
+      return null;
     }
   }
 
-  Future<void> deleteStory(String professionalId, String url) async {
-    try {
-      // Extraire le chemin du fichier de l'URL
-      final uri = Uri.parse(url);
-      final filePath = uri.pathSegments.last;
-      final fullPath = '$professionalId/$filePath';
+  bool _isValidImageExtension(String extension) {
+    return ['.jpg', '.jpeg', '.png'].contains(extension);
+  }
 
-      // Supprimer le fichier de Supabase Storage
-      await _storageService.deleteFile(fullPath);
+  bool _isValidVideoExtension(String extension) {
+    return ['.mp4', '.mov', '.avi'].contains(extension);
+  }
+
+  Future<void> deleteStory(Story story) async {
+    try {
+      // Supprimer le fichier principal
+      await _storageService.deleteFile(story.url);
+
+      // Supprimer la miniature si elle existe
+      if (story.thumbnailUrl != null) {
+        await _storageService.deleteFile(
+          story.thumbnailUrl!,
+          bucket: 'thumbnails',
+        );
+      }
+
+      // Supprimer l'entrée de la base de données
+      await _databaseService.deleteStory(story.id);
     } catch (e) {
       print('Error deleting story: $e');
       rethrow;
