@@ -1,8 +1,7 @@
 -- Step 1: Create professionals table and insert data
 CREATE TABLE IF NOT EXISTS professionals (
     id UUID PRIMARY KEY REFERENCES auth.users(id),
-    first_name VARCHAR(255) NOT NULL,
-    last_name VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     phone VARCHAR(20),
     address VARCHAR(255),
@@ -35,8 +34,7 @@ CREATE TRIGGER update_professionals_updated_at
 -- Insert demo professional
 INSERT INTO professionals (
     id, 
-    first_name,
-    last_name,
+    name,
     email,
     phone,
     address,
@@ -47,8 +45,7 @@ INSERT INTO professionals (
     status
 ) VALUES (
     '00000000-0000-0000-0000-000000000001',
-    'Sarah',
-    'Martin',
+    'Sarah Martin',
     'sarah.martin@example.com',
     '+33612345678',
     '123 Rue de la Beauté',
