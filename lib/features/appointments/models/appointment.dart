@@ -1,4 +1,5 @@
 import 'package:uuid/uuid.dart';
+import 'package:intl/intl.dart';
 
 class Appointment {
   final String id;
@@ -23,6 +24,21 @@ class Appointment {
         status = status ?? 'pending',
         createdAt = createdAt ?? DateTime.now(),
         updatedAt = updatedAt ?? DateTime.now();
+
+  String get formattedDateTime {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
+    final appointmentDate = DateTime(dateTime.year, dateTime.month, dateTime.day);
+
+    if (appointmentDate == today) {
+      return "Aujourd'hui, ${DateFormat('HH:mm').format(dateTime)}";
+    } else if (appointmentDate == tomorrow) {
+      return "Demain, ${DateFormat('HH:mm').format(dateTime)}";
+    } else {
+      return DateFormat('dd/MM/yyyy HH:mm').format(dateTime);
+    }
+  }
 
   Map<String, dynamic> toMap() {
     return {

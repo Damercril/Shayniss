@@ -4,11 +4,8 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/services/category_service.dart';
 import '../../../core/models/service_category.dart';
 import '../../../core/widgets/common_app_bar.dart';
-import '../../appointments/widgets/add_appointment_modal.dart';
-import '../../services/models/service.dart';
-import '../../dashboard/screens/dashboard_screen.dart';
-import '../../notifications/screens/notifications_screen.dart';
-import '../../messages/screens/messages_screen.dart';
+import '../../appointments/services/appointment_service.dart';
+import '../../appointments/models/appointment.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,26 +16,46 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final CategoryService _categoryService = CategoryService();
+  final AppointmentService _appointmentService = AppointmentService();
   List<ServiceCategory> _categories = [];
+  List<Appointment> _upcomingAppointments = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadCategories();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    try {
+      setState(() => _isLoading = true);
+      await Future.wait([
+        _loadCategories(),
+        _loadAppointments(),
+      ]);
+      setState(() => _isLoading = false);
+    } catch (e) {
+      print('Error loading data: $e');
+      setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _loadCategories() async {
     try {
-      setState(() => _isLoading = true);
       final categories = await _categoryService.getAllCategories();
-      setState(() {
-        _categories = categories;
-        _isLoading = false;
-      });
+      setState(() => _categories = categories);
     } catch (e) {
       print('Error loading categories: $e');
-      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _loadAppointments() async {
+    try {
+      final appointments = await _appointmentService.getUpcomingAppointments();
+      setState(() => _upcomingAppointments = appointments);
+    } catch (e) {
+      print('Error loading appointments: $e');
     }
   }
 
@@ -48,7 +65,8 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: AppColors.background,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SafeArea(
+          : RefreshIndicator(
+              onRefresh: _loadData,
               child: CustomScrollView(
                 slivers: [
                   const SliverToBoxAdapter(
@@ -62,7 +80,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         _buildServicesSection(),
                         _buildUpcomingAppointments(),
-                        _buildServicesFeed(),
                       ],
                     ),
                   ),
@@ -73,19 +90,40 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildServicesSection() {
+    if (_categories.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Container(
       color: AppColors.surface,
       padding: EdgeInsets.symmetric(vertical: 16.h),
-      child: SizedBox(
-        height: 100.h,
-        child: ListView.builder(
-          padding: EdgeInsets.symmetric(horizontal: 16.w),
-          scrollDirection: Axis.horizontal,
-          itemCount: _categories.length,
-          itemBuilder: (context, index) {
-            return _buildServiceItem(_categories[index]);
-          },
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: Text(
+              'Nos services',
+              style: TextStyle(
+                fontSize: 20.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColors.text,
+              ),
+            ),
+          ),
+          SizedBox(height: 16.h),
+          SizedBox(
+            height: 100.h,
+            child: ListView.builder(
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              scrollDirection: Axis.horizontal,
+              itemCount: _categories.length,
+              itemBuilder: (context, index) {
+                return _buildServiceItem(_categories[index]);
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -139,14 +177,36 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           SizedBox(height: 16.h),
-          _buildAppointmentCard(),
+          if (_upcomingAppointments.isEmpty)
+            Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 24.h),
+                child: Text(
+                  'Aucun rendez-vous à venir',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            )
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _upcomingAppointments.length,
+              itemBuilder: (context, index) {
+                return _buildAppointmentCard(_upcomingAppointments[index]);
+              },
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildAppointmentCard() {
+  Widget _buildAppointmentCard(Appointment appointment) {
     return Container(
+      margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -184,7 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Aujourd\'hui, 14:30',
+                      appointment.formattedDateTime,
                       style: TextStyle(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.w600,
@@ -193,7 +253,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     SizedBox(height: 4.h),
                     Text(
-                      'Coupe et Brushing avec Sarah',
+                      '${appointment.serviceName} avec ${appointment.professionalName}',
                       style: TextStyle(
                         fontSize: 14.sp,
                         color: AppColors.textSecondary,
@@ -202,177 +262,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-              Icon(
-                Icons.chevron_right,
-                color: AppColors.textSecondary,
-                size: 24.w,
-              ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildServicesFeed() {
-    return Column(
-      children: _categories.map((category) {
-        return _buildServicePost(category);
-      }).toList(),
-    );
-  }
-
-  Widget _buildServicePost(ServiceCategory category) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 16.h),
-      color: AppColors.surface,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildPostHeader(category),
-          _buildPostImage(category),
-          _buildPostActions(category),
-          _buildPostCaption(category),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPostHeader(ServiceCategory category) {
-    return Padding(
-      padding: EdgeInsets.all(12.w),
-      child: Row(
-        children: [
-          Container(
-            width: 40.w,
-            height: 40.w,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              image: DecorationImage(
-                image: NetworkImage(category.icon),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  category.name,
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.text,
-                  ),
-                ),
-                Text(
-                  category.description,
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPostImage(ServiceCategory category) {
-    return Container(
-      height: 300.h,
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: NetworkImage(category.icon),
-          fit: BoxFit.cover,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPostActions(ServiceCategory category) {
-    return Padding(
-      padding: EdgeInsets.all(12.w),
-      child: Row(
-        children: [
-          Icon(Icons.favorite_border, color: AppColors.like),
-          const Spacer(),
-          TextButton.icon(
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (context) => AddAppointmentModal(
-                  service: Service(
-                    id: '1', // TODO: Use actual service ID
-                    name: category.name,
-                    category: category.name.toLowerCase(),
-                    description: category.description,
-                    duration: 60, // TODO: Use actual duration
-                    price: 50.0, // TODO: Use actual price
-                  ),
-                ),
-              );
-            },
-            icon: Icon(
-              Icons.calendar_today,
-              color: AppColors.primary,
-              size: 20.w,
-            ),
-            label: Text(
-              'Prendre RDV',
-              style: TextStyle(
-                color: AppColors.primary,
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPostCaption(ServiceCategory category) {
-    return Padding(
-      padding: EdgeInsets.all(12.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '1,234 likes',
-            style: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w600,
-              color: AppColors.text,
-            ),
-          ),
-          SizedBox(height: 8.h),
-          RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: category.name,
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.text,
-                  ),
-                ),
-                TextSpan(
-                  text: ' ${category.description}',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    color: AppColors.text,
-                  ),
-                ),
-              ],
-            ),
           ),
         ],
       ),
