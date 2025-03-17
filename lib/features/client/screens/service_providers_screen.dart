@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_colors.dart';
 import '../widgets/service_filters_widget.dart';
 import 'provider_profile_screen.dart';
+import '../../../features/appointments/widgets/booking_form_modal.dart';
 
 class ServiceProvidersScreen extends StatefulWidget {
   final String serviceType;
@@ -28,6 +29,7 @@ class _ServiceProvidersScreenState extends State<ServiceProvidersScreen> {
 
   final List<Map<String, dynamic>> _providers = [
     {
+      'id': 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
       'name': 'Sarah Martin',
       'image': 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200',
       'rating': 4.8,
@@ -37,6 +39,7 @@ class _ServiceProvidersScreenState extends State<ServiceProvidersScreen> {
       'available': true,
     },
     {
+      'id': 'b9c24b3f-6f23-4c8e-a84c-4e36e52d5c2b',
       'name': 'Marie Dubois',
       'image': 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200',
       'rating': 4.5,
@@ -46,6 +49,7 @@ class _ServiceProvidersScreenState extends State<ServiceProvidersScreen> {
       'available': false,
     },
     {
+      'id': 'd5f39c8e-2a1d-4cd5-b726-9e4c1f5e8c3a',
       'name': 'Julie Bernard',
       'image': 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=200',
       'rating': 4.9,
@@ -306,7 +310,19 @@ class _ServiceProvidersScreenState extends State<ServiceProvidersScreen> {
                     ),
                   ),
                   onPressed: () {
-                    // Navigation vers la page de réservation
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (context) => BookingFormModal(
+                        providerFirstName: provider['name'].split(' ')[0],
+                        providerLastName: provider['name'].split(' ')[1],
+                        serviceType: widget.serviceType,
+                        initialPrice: provider['price'].toDouble(),
+                        initialDuration: 60, // Durée par défaut en minutes
+                        servicePhotoUrl: provider['image'],
+                      ),
+                    );
                   },
                   child: Text(
                     'Prendre rendez-vous',

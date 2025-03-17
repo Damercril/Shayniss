@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS services (
     duration INTEGER NOT NULL CHECK (duration > 0),
     price DECIMAL(10, 2) NOT NULL CHECK (price >= 0),
     is_active BOOLEAN DEFAULT true,
+    booking_count INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -52,8 +53,8 @@ CREATE TRIGGER update_services_updated_at
     EXECUTE FUNCTION update_updated_at_column();
 
 -- Insert demo services
-INSERT INTO services (id, professional_id, category_id, name, description, duration, price, is_active) VALUES
-    ('00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', (SELECT id FROM service_categories WHERE name = 'Coiffure'), 'Coupe Femme', 'Coupe, shampoing et brushing', 90, 45.00, true),
-    ('00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', (SELECT id FROM service_categories WHERE name = 'Coiffure'), 'Coloration', 'Coloration complète avec soin', 120, 65.00, true),
-    ('00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000001', (SELECT id FROM service_categories WHERE name = 'Coiffure'), 'Brushing', 'Brushing et mise en forme', 45, 30.00, true),
-    ('00000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000001', (SELECT id FROM service_categories WHERE name = 'Maquillage'), 'Maquillage Jour', 'Maquillage naturel pour la journée', 45, 35.00, true);
+INSERT INTO services (id, professional_id, category_id, name, description, duration, price, is_active, booking_count) VALUES
+    ('00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000001', (SELECT id FROM service_categories WHERE name = 'Coiffure'), 'Coupe Femme', 'Coupe, shampoing et brushing', 90, 45.00, true, 0),
+    ('00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', (SELECT id FROM service_categories WHERE name = 'Coiffure'), 'Coloration', 'Coloration complète avec soin', 120, 65.00, true, 0),
+    ('00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000001', (SELECT id FROM service_categories WHERE name = 'Coiffure'), 'Brushing', 'Brushing et mise en forme', 45, 30.00, true, 0),
+    ('00000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000001', (SELECT id FROM service_categories WHERE name = 'Maquillage'), 'Maquillage Jour', 'Maquillage naturel pour la journée', 45, 35.00, true, 0);
