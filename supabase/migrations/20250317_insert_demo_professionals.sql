@@ -1,0 +1,71 @@
+-- Insert demo professionals
+INSERT INTO professionals (
+    name,
+    email,
+    phone,
+    address,
+    city,
+    description,
+    profile_picture_url,
+    cover_picture_url,
+    rating,
+    review_count,
+    is_available,
+    status
+) VALUES 
+(
+    'Sarah Martin',
+    'sarah.martin@example.com',
+    '+33612345678',
+    '123 Rue de la Beauté',
+    'Paris',
+    'Coiffeuse et maquilleuse professionnelle avec plus de 10 ans d''expérience. Spécialisée dans les mariages et événements.',
+    'https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg',
+    'https://images.pexels.com/photos/3997989/pexels-photo-3997989.jpeg',
+    4.8,
+    127,
+    true,
+    'active'
+),
+(
+    'Marie Dubois',
+    'marie.dubois@example.com',
+    '+33623456789',
+    '45 Avenue des Soins',
+    'Lyon',
+    'Esthéticienne passionnée, experte en soins du visage et massages relaxants. Je propose des prestations personnalisées.',
+    'https://images.pexels.com/photos/3764119/pexels-photo-3764119.jpeg',
+    'https://images.pexels.com/photos/3738349/pexels-photo-3738349.jpeg',
+    4.5,
+    89,
+    true,
+    'active'
+),
+(
+    'Julie Bernard',
+    'julie.bernard@example.com',
+    '+33634567890',
+    '78 Boulevard du Bien-être',
+    'Marseille',
+    'Spécialiste en extensions de cils et onglerie. Je crée des looks uniques adaptés à chaque cliente.',
+    'https://images.pexels.com/photos/3762892/pexels-photo-3762892.jpeg',
+    'https://images.pexels.com/photos/3738345/pexels-photo-3738345.jpeg',
+    4.9,
+    156,
+    true,
+    'active'
+),
+(
+    'Sophie Lambert',
+    'sophie.lambert@example.com',
+    '+33645678901',
+    '15 Rue de la Mode',
+    'Bordeaux',
+    'Coiffeuse styliste créative, je donne vie à vos envies capillaires avec les dernières techniques et tendances.',
+    'https://images.pexels.com/photos/3765175/pexels-photo-3765175.jpeg',
+    'https://images.pexels.com/photos/3738365/pexels-photo-3738365.jpeg',
+    4.7,
+    94,
+    true,
+    'active'
+);

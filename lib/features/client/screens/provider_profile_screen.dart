@@ -45,35 +45,87 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
 
   Future<void> _loadProviderDetails() async {
     try {
+      if (widget.provider['id'] == null) {
+        throw Exception('ID du prestataire manquant');
+      }
+
       setState(() => _isLoading = true);
       
-      // Charger la description
-      final descriptionResponse = await supabase
-          .from('professional_profiles')
-          .select('description')
-          .eq('id', widget.provider['id'])
-          .single();
+      // Debug log
+      print('Loading provider details for ID: ${widget.provider['id']}');
       
-      // Charger les photos de la galerie
-      final galleryResponse = await supabase
-          .from('professional_galleries')
-          .select('image_url')
-          .eq('professional_id', widget.provider['id'])
-          .order('created_at');
+      // Charger les informations du prestataire
+      final professionalResponse = await supabase
+          .from('professionals')
+          .select()
+          .eq('id', widget.provider['id'])
+          .maybeSingle();
+      
+      // Debug log
+      print('Professional response: $professionalResponse');
+
+      if (professionalResponse == null) {
+        throw Exception('Profil non trouvé');
+      }
+
+      // Charger les photos de la galerie séparément (temporaire)
+      try {
+        final galleryResponse = await supabase
+            .from('galleries')  // Trying alternative table name
+            .select('image_url')
+            .eq('professional_id', widget.provider['id'])
+            .order('created_at');
+            
+        _galleryPhotos = List<String>.from(galleryResponse.map((g) => g['image_url']));
+      } catch (galleryError) {
+        print('Note: Gallery not available: $galleryError');
+        _galleryPhotos = [];  // Empty list if gallery not available
+      }
 
       setState(() {
-        _description = descriptionResponse['description'];
-        _galleryPhotos = List<String>.from(galleryResponse.map((g) => g['image_url']));
+        _description = professionalResponse['description'];
         _isLoading = false;
       });
     } catch (e) {
+      print('Error loading provider details: $e'); // Debug log
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur lors du chargement des détails'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (!mounted) return;
+      
+      String errorMessage = 'Impossible de charger les informations du prestataire';
+      
+      // Messages d'erreur plus spécifiques
+      if (e.toString().contains('Profil non trouvé')) {
+        errorMessage = 'Ce profil n\'existe pas ou n\'est plus disponible';
+      } else if (e.toString().contains('ID du prestataire manquant')) {
+        errorMessage = 'Identifiant du prestataire invalide';
+      } else if (e.toString().contains('network') || e.toString().contains('connection')) {
+        errorMessage = 'Problème de connexion. Vérifiez votre connexion internet';
+      } else if (e.toString().contains('permission') || e.toString().contains('not authorized')) {
+        errorMessage = 'Ce profil n\'est pas accessible pour le moment';
+      }
+      
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.white),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(errorMessage),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'Réessayer',
+              textColor: Colors.white,
+              onPressed: _loadProviderDetails,
+            ),
+          ),
+        );
+      });
     }
   }
 
@@ -101,23 +153,31 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         _hasError = false;
       });
     } catch (e) {
-      print('Erreur lors du chargement des services: $e'); // Debug
       if (!mounted) return;
       
       setState(() {
         _loadingServices = false;
         _hasError = true;
+        _services = []; // Clear any partial data
       });
       
-      // Utiliser addPostFrameCallback pour afficher le SnackBar après la construction
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors du chargement des services: ${e.toString()}'),
-            duration: Duration(seconds: 3),
+            content: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.white),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text('Impossible de charger les services disponibles'),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 4),
             action: SnackBarAction(
               label: 'Réessayer',
+              textColor: Colors.white,
               onPressed: _loadServices,
             ),
           ),
