@@ -1,0 +1,51 @@
+id;title;description;status;priority;dependencies;complexity
+1;Définir le schéma BDD;Écrire et valider le schéma complet des tables Supabase pour tous les domaines métier;fait;Haute;();7/10
+1.1;Lister les entités principales;Identifier toutes les entités métier à modéliser (users, services, bookings, etc.);fait;Haute;(1);3/10
+1.2;Définir les champs et contraintes;Établir les champs, types, contraintes et relations pour chaque table;fait;Haute;(1.1);4/10
+1.3;Mettre en place les index et triggers;Définir les index pour la recherche, les triggers pour l’audit et la cohérence;fait;Haute;(1.2);3/10
+1.4;Rédiger les règles RLS;Écrire les règles de sécurité d’accès aux données (RLS) pour chaque table;fait;Haute;(1.2);3/10
+1.5;Documenter le schéma;Rédiger la documentation complète et schémas ERD;fait;Haute;(1.4);2/10
+2;Lister les endpoints API;Lister tous les endpoints nécessaires pour couvrir les besoins (CRUD, recherche, auth, etc.);à faire;Haute;();6/10
+2.1;Lister les opérations CRUD;Lister toutes les opérations CRUD par ressource (users, services, bookings...);fait;Haute;(2);3/10
+2.2;Définir les endpoints de recherche et filtres;Lister les endpoints pour la recherche avancée et les filtres;fait;Haute;(2.1);3/10
+2.3;Décrire les payloads et réponses;Définir les schémas de requête/réponse pour chaque endpoint;fait;Haute;(2.2);3/10
+2.4;Développer les endpoints API;Développer les endpoints API en fonction des besoins;à faire;Haute;(2.3);3/10
+2.5;Tester les endpoints API;Tester les endpoints API pour s'assurer de leur fonctionnement correct;à faire;Haute;(2.4);3/10
+3;Structurer le projet Deno;Créer l’arborescence des fichiers (routes, handlers, modèles, tests);à faire;Moyenne;(1,2);5/10
+3.1;Créer la structure des dossiers;Créer les dossiers routes, services, models, tests, utils;fait;Moyenne;(3);2/10
+3.2;Initialiser les fichiers principaux;Créer les fichiers d’entrée (main.ts, router, config, etc.);fait;Moyenne;(3.1);2/10
+3.3;Mettre en place la configuration Supabase;Configurer la connexion à Supabase dans le projet Deno;fait;Moyenne;(3.2);2/10
+4;Implémenter l’authentification;Développer les endpoints d’inscription, connexion, gestion du token;fait;Haute;(3);6/10
+4.1;Créer les modèles et services auth;Définir les modèles User, AuthService, gestion du hash de mot de passe;fait;Haute;(4);3/10
+4.2;Développer les endpoints register/login/logout;Implémenter les routes d’inscription, connexion, déconnexion;fait;Haute;(4.1);3/10
+4.3;Gérer la validation et les erreurs auth;Ajouter la validation des entrées et la gestion des erreurs explicites;fait;Haute;(4.2);3/10
+4.4;Développer la gestion des sessions;Développer la gestion des sessions pour les utilisateurs connectés;fait;Haute;(4.3);3/10
+4.5;Tester l'authentification;Tester l'authentification pour s'assurer de son fonctionnement correct;fait;Haute;(4.4);3/10
+5;Gestion des utilisateurs/professionnels;Endpoints CRUD, profils, settings, rôles;fait;Haute;(3,4);6/10
+5.1;Créer les modèles et services user/pro;Définir les modèles User, Professional, UserService;fait;Haute;(5);3/10
+5.2;Implémenter les endpoints CRUD user/pro;Créer les routes pour la gestion des profils, settings, rôles;fait;Haute;(5.1);3/10
+5.3;Développer la gestion des permissions;Développer la gestion des permissions pour les utilisateurs et professionnels;fait;Haute;(5.2);3/10
+5.4;Tester la gestion des utilisateurs/professionnels;Tester la gestion des utilisateurs/professionnels pour s'assurer de son fonctionnement correct;fait;Haute;(5.3);3/10
+6;Gestion des services;CRUD services, activation, recherche, filtres;fait;Haute;(3,5);7/10
+6.1;Créer le modèle Service et la logique métier;Définir le modèle Service, validation, activation/inactivation;à faire;Haute;(6);3/10
+6.2;Implémenter les endpoints CRUD services;Créer les routes pour ajouter, modifier, supprimer, activer;fait;Haute;(6.1);2/10
+6.3;Développer la recherche et les filtres;Endpoints pour la recherche avancée, filtres dynamiques;fait;Haute;(6.2);3/10
+6.4;Développer la gestion des catégories;Développer la gestion des catégories pour les services;fait;Haute;(6.3);3/10
+6.5;Tester la gestion des services;Tester la gestion des services pour s'assurer de son fonctionnement correct;fait;Haute;(6.4);3/10
+7;Gestion des disponibilités;Endpoints pour gérer les créneaux simples et récurrents;à faire;Moyenne;(3,5);6/10
+7.1;Définir le modèle Availability;Créer le modèle, gestion des créneaux récurrents et exceptions;fait;Moyenne;(7);3/10
+7.2;Implémenter les endpoints CRUD disponibilités;Créer les routes pour ajouter, éditer, supprimer des créneaux;fait;Moyenne;(7.1);3/10
+7.3;Développer la gestion des exceptions;Développer la gestion des exceptions pour les disponibilités;fait;Moyenne;(7.2);3/10
+7.4;Tester la gestion des disponibilités;Tester la gestion des disponibilités pour s'assurer de son fonctionnement correct;fait;Moyenne;(7.3);3/10
+8;Réservations (bookings);Endpoints pour réserver, consulter, annuler selon règles métier;à faire;Haute;(3,5,6,7);8/10
+8.1;Créer le modèle Booking et la logique métier;Définir le modèle Booking, gestion des statuts, règles d’annulation;fait;Haute;(8);3/10
+8.2;Implémenter les endpoints réservation;Créer les routes pour réserver, consulter, annuler;fait;Haute;(8.1);3/10
+8.3;Gérer les conflits et validations;Vérifier les conflits de créneaux, validation des règles métier;fait;Haute;(8.2);2/10
+8.4;Notifier les utilisateurs;Envoyer une notification in-app lors de chaque changement de statut;fait;Moyenne;(8.3);2/10
+8.5;Développer la gestion des remboursements;Développer la gestion des remboursements pour les réservations;fait;Haute;(8.4);3/10
+8.6;Tester la gestion des réservations;Tester la gestion des réservations pour s'assurer de son fonctionnement correct;fait;Haute;(8.5);3/10
+9;Messagerie;Endpoints pour créer conversations/messages;à faire;Moyenne;(3,5,8);6/10
+9.1;Créer les modèles Conversation/Message;Définir les modèles, gestion des participants, pagination;à faire;Moyenne;(9);3/10
+9.2;Implémenter les endpoints CRUD messagerie;Créer les routes pour envoyer, lire, supprimer des messages;à faire;Moyenne;(9.1);3/10
+9.3;Développer la gestion des notifications;Développer la gestion des notifications pour les messages;à faire;Moyenne;(9.2);3/10
+9.4;Tester la messagerie;Tester la messagerie pour s'assurer de son fonctionnement correct;à faire;Moyenne;(9.3);3/10

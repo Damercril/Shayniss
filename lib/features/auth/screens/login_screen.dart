@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../core/theme/app_colors.dart';
-import '../services/auth_service.dart';
+import 'package:shayniss/core/theme/app_colors.dart';
+import 'package:shayniss/features/auth/services/auth_service.dart';
+import 'package:shayniss/features/auth/screens/user_type_selection_screen.dart';
+import 'package:shayniss/features/client/screens/client_home_screen.dart';
+import 'package:shayniss/features/home/screens/home_screen.dart';
+import 'package:shayniss/features/auth/models/user_type.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -166,6 +170,38 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                   ),
+                ),
+                SizedBox(height: 20.h),
+                // Lien vers l'inscription
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Pas encore de compte ? ',
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const UserTypeSelectionScreen(),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'S\'inscrire',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

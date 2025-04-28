@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shayniss/core/theme/app_colors.dart';
 import 'package:shayniss/features/client/screens/professional_profile_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shayniss/core/widgets/error_handling_image.dart';
 
 class ClientAppointmentsScreen extends StatefulWidget {
   const ClientAppointmentsScreen({super.key});
@@ -77,7 +78,7 @@ class _ClientAppointmentsScreenState extends State<ClientAppointmentsScreen> wit
                 address: '15 rue des Lilas, 75011 Paris',
                 status: 'À venir',
                 upcoming: true,
-                profileImage: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330',
+                profileImage: 'https://images.pexels.com/photos/1036623/pexels-photo-1036623.jpeg?auto=compress&cs=tinysrgb&w=400',
                 paymentMethod: 'Carte bancaire',
                 professionalId: 'sarah-martin',
               ),
@@ -92,7 +93,7 @@ class _ClientAppointmentsScreenState extends State<ClientAppointmentsScreen> wit
                 address: '8 avenue Victor Hugo, 75016 Paris',
                 status: 'À venir',
                 upcoming: true,
-                profileImage: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80',
+                profileImage: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400',
                 paymentMethod: 'PayPal',
                 professionalId: 'marie-dubois',
               ),
@@ -248,11 +249,22 @@ class _ClientAppointmentsScreenState extends State<ClientAppointmentsScreen> wit
                 Hero(
                   tag: 'professional_avatar_$professionalId',
                   child: CircleAvatar(
-                    radius: 24.r,
-                    backgroundImage: profileImage != null && profileImage.isNotEmpty
-                        ? CachedNetworkImageProvider(profileImage) as ImageProvider
-                        : const AssetImage('assets/images/default_avatar.jpg'),
+                    radius: 25.r,
                     backgroundColor: Colors.grey[200],
+                    child: profileImage != null
+                        ? ClipOval(
+                            child: ErrorHandlingImage(
+                              imageUrl: profileImage,
+                              width: 50.r,
+                              height: 50.r,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : Icon(
+                            Icons.person,
+                            size: 25.r,
+                            color: AppColors.primary,
+                          ),
                   ),
                 ),
                 SizedBox(width: 12.w),

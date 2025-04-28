@@ -4,6 +4,7 @@ import 'package:shayniss/core/theme/app_colors.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+import 'package:shayniss/core/widgets/error_handling_image.dart';
 
 class ProfessionalProfileScreen extends StatelessWidget {
   final String professionalId;
@@ -133,11 +134,11 @@ class ProfessionalProfileScreen extends StatelessWidget {
                     child: ListView(
                       scrollDirection: Axis.horizontal,
                       children: [
-                        _buildGalleryImage('https://images.unsplash.com/photo-1560869713-da86a9ec4623', context),
-                        _buildGalleryImage('https://images.unsplash.com/photo-1562322140-8baeececf3df', context),
-                        _buildGalleryImage('https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f', context),
-                        _buildGalleryImage('https://images.unsplash.com/photo-1522337360788-8b13dee7a37e', context),
-                        _buildGalleryImage('https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1', context),
+                        _buildGalleryImage('https://images.pexels.com/photos/3997993/pexels-photo-3997993.jpeg?auto=compress&cs=tinysrgb&w=800', context),
+                        _buildGalleryImage('https://images.pexels.com/photos/3985338/pexels-photo-3985338.jpeg?auto=compress&cs=tinysrgb&w=800', context),
+                        _buildGalleryImage('https://images.pexels.com/photos/3373716/pexels-photo-3373716.jpeg?auto=compress&cs=tinysrgb&w=800', context),
+                        _buildGalleryImage('https://images.pexels.com/photos/3997989/pexels-photo-3997989.jpeg?auto=compress&cs=tinysrgb&w=800', context),
+                        _buildGalleryImage('https://images.pexels.com/photos/3997981/pexels-photo-3997981.jpeg?auto=compress&cs=tinysrgb&w=800', context),
                       ],
                     ),
                   ),
@@ -292,11 +293,11 @@ class ProfessionalProfileScreen extends StatelessWidget {
                   return PhotoViewGalleryPageOptions(
                     imageProvider: CachedNetworkImageProvider(
                       [
-                        'https://images.unsplash.com/photo-1560869713-da86a9ec4623',
-                        'https://images.unsplash.com/photo-1562322140-8baeececf3df',
-                        'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f',
-                        'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e',
-                        'https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1',
+                        'https://images.pexels.com/photos/3997993/pexels-photo-3997993.jpeg?auto=compress&cs=tinysrgb&w=800',
+                        'https://images.pexels.com/photos/3985338/pexels-photo-3985338.jpeg?auto=compress&cs=tinysrgb&w=800',
+                        'https://images.pexels.com/photos/3373716/pexels-photo-3373716.jpeg?auto=compress&cs=tinysrgb&w=800',
+                        'https://images.pexels.com/photos/3997989/pexels-photo-3997989.jpeg?auto=compress&cs=tinysrgb&w=800',
+                        'https://images.pexels.com/photos/3997981/pexels-photo-3997981.jpeg?auto=compress&cs=tinysrgb&w=800',
                       ][index],
                     ),
                     minScale: PhotoViewComputedScale.contained,
@@ -314,39 +315,40 @@ class ProfessionalProfileScreen extends StatelessWidget {
         },
         child: Hero(
           tag: imageUrl,
-          child: Container(
+          child: ErrorHandlingImage(
+            imageUrl: imageUrl,
+            fit: BoxFit.cover,
             width: 120.w,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12.r),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
+            height: 120.h,
+            loadingWidget: Container(
+              color: Colors.grey[200],
+              child: Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                  strokeWidth: 2.0,
                 ),
-              ],
+              ),
             ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12.r),
-              child: CachedNetworkImage(
-                imageUrl: imageUrl,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
-                  color: Colors.grey[200],
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+            errorWidget: Container(
+              color: Colors.grey[200],
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.image_not_supported_outlined,
+                    color: Colors.grey[400],
+                    size: 24.sp,
+                  ),
+                  SizedBox(height: 4.h),
+                  Text(
+                    'Image non disponible',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontSize: 10.sp,
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                ),
-                errorWidget: (context, url, error) => Container(
-                  color: Colors.grey[200],
-                  child: Icon(
-                    Icons.error_outline,
-                    color: Colors.red,
-                    size: 24.w,
-                  ),
-                ),
+                ],
               ),
             ),
           ),

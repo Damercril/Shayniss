@@ -46,7 +46,7 @@ class CategoryService {
           .from(_imagesTable)
           .select('url')
           .limit(count)
-          .order('RANDOM()');
+          .order('id'); // Utilisation d'un ordre simple au lieu de RANDOM()
       
       return List<String>.from(
         response.map((image) => image['url'] as String),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/theme/app_colors.dart';
 import 'client_home_screen.dart';
-import 'client_search_screen.dart';
+import 'client_earnings_screen.dart';
 import 'client_profile_screen.dart';
 import 'client_appointments_screen.dart';
 import 'client_map_screen.dart';
@@ -19,7 +19,7 @@ class _ClientNavigationScreenState extends State<ClientNavigationScreen> {
 
   final List<Widget> _screens = [
     const ClientHomeScreen(),
-    const ClientSearchScreen(),
+    const ClientEarningsScreen(),
     const ClientMapScreen(),
     const ClientAppointmentsScreen(),
     const ClientProfileScreen(),
@@ -70,9 +70,9 @@ class _ClientNavigationScreenState extends State<ClientNavigationScreen> {
               label: 'Accueil',
             ),
             const BottomNavigationBarItem(
-              icon: Icon(Icons.search_outlined),
-              activeIcon: Icon(Icons.search),
-              label: 'Rechercher',
+              icon: Icon(Icons.attach_money_outlined),
+              activeIcon: Icon(Icons.attach_money),
+              label: 'Gains',
             ),
             BottomNavigationBarItem(
               icon: Container(

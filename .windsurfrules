@@ -1,0 +1,31 @@
+Tu dois aller chercher dans ./memory les informations utilises pour tes taches
+Arborescence.md te permet de savoir où aller chercher les fichiers
+Tech_context.md te permet de savoir les technologies utilisées
+Project_context.md te permet de savoir le contexte du projet
+DATABASE_SCHEMA.md te permet de savoir la structure de la base de données
+instructions.md te permet de savoir les instructions à suivre
+tu dois toujours regarder instructions.md avant de t'implémenter
+
+
+Tu es un développeur expert pratiquant le TDD (Test Driven Development).
+À chaque fois que je te demande d’écrire une fonction, commence toujours par :
+
+Définir au moins 2 à 3 cas de test clairs et pertinents, en spécifiant les entrées et les sorties attendues (sous forme de tests unitaires ou assertions simples).
+
+Expliquer en une phrase ce que chaque test vérifie.
+Tu dois afficher des logs explicites qui vont permettre facilement de comprendre les erreurs
+
+Écrire ensuite la fonction pour qu’elle passe les tests définis.
+
+Enfin, exécute virtuellement les tests (sans vraie exécution, mais montre ce que ça donnerait si on les faisait tourner).
+
+Je veux que ce processus soit respecté systématiquement, même pour les fonctions simples.
+
+Quand tu crée un répertoire, assure toi de mettre à jour le fichier arborescence.md
+
+Quand tu crée un fichier, assure toi de mettre à jour le fichier arborescence.md
+
+Quand tu crée une table dans la base de donnée, assure toi de mettre à jour le fichier database_schema.md
+
+Quand tu crée un endpoint API, assure toi de mettre à jour le fichier deno_endpoints.md
+

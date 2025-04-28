@@ -10,6 +10,8 @@ import '../../../features/services/models/service.dart';
 import '../../../features/appointments/widgets/booking_form_modal.dart';
 import '../../../features/appointments/models/booking_details.dart';
 import 'client_map_screen.dart';
+import 'package:shayniss/core/widgets/error_handling_image.dart';
+import '../widgets/service_search_delegate.dart';
 
 class ClientHomeScreen extends StatefulWidget {
   const ClientHomeScreen({Key? key}) : super(key: key);
@@ -141,6 +143,51 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
+          // Barre de recherche
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+              child: GestureDetector(
+                onTap: () {
+                  showSearch(
+                    context: context,
+                    delegate: ServiceSearchDelegate(),
+                  );
+                },
+                child: Container(
+                  height: 50.h,
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.search, color: AppColors.primary),
+                      SizedBox(width: 12.w),
+                      Text(
+                        'Rechercher un service, un prestataire...',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      const Spacer(),
+                      Icon(Icons.tune, color: AppColors.primary),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
           // Prestations
           SliverToBoxAdapter(
             child: Container(
@@ -151,23 +198,23 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
                 scrollDirection: Axis.horizontal,
                 children: [
                   _buildServiceItem(
-                    imageUrl: 'https://images.unsplash.com/photo-1560750588-73207b1ef5b8?q=80&w=200',
+                    imageUrl: 'https://images.pexels.com/photos/3997993/pexels-photo-3997993.jpeg?auto=compress&cs=tinysrgb&w=200',
                     name: 'Massage',
                   ),
                   _buildServiceItem(
-                    imageUrl: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=200',
-                    name: 'Manucure',
-                  ),
-                  _buildServiceItem(
-                    imageUrl: 'https://images.unsplash.com/photo-1595867818082-083862f3d630?q=80&w=200',
+                    imageUrl: 'https://images.pexels.com/photos/3985338/pexels-photo-3985338.jpeg?auto=compress&cs=tinysrgb&w=200',
                     name: 'Coiffure',
                   ),
                   _buildServiceItem(
-                    imageUrl: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=200',
+                    imageUrl: 'https://images.pexels.com/photos/3373716/pexels-photo-3373716.jpeg?auto=compress&cs=tinysrgb&w=200',
+                    name: 'Manucure',
+                  ),
+                  _buildServiceItem(
+                    imageUrl: 'https://images.pexels.com/photos/3997989/pexels-photo-3997989.jpeg?auto=compress&cs=tinysrgb&w=200',
                     name: 'Soin visage',
                   ),
                   _buildServiceItem(
-                    imageUrl: 'https://images.unsplash.com/photo-1519014816548-bf5fe059798b?q=80&w=200',
+                    imageUrl: 'https://images.pexels.com/photos/3997981/pexels-photo-3997981.jpeg?auto=compress&cs=tinysrgb&w=200',
                     name: 'Épilation',
                   ),
                 ],
@@ -180,8 +227,8 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
             delegate: SliverChildListDelegate([
               _buildFeedPost(
                 username: 'Sarah Martin',
-                userImage: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200',
-                postImage: 'https://images.unsplash.com/photo-1600334129128-685c5582fd35?q=80&w=800',
+                userImage: 'https://images.pexels.com/photos/1036623/pexels-photo-1036623.jpeg?auto=compress&cs=tinysrgb&w=400',
+                postImage: 'https://images.pexels.com/photos/5240677/pexels-photo-5240677.jpeg?auto=compress&cs=tinysrgb&w=800',
                 description: 'Découvrez notre nouveau massage aux pierres chaudes ! 🌺✨\nUne expérience unique de détente profonde.',
                 likes: '128',
                 timeAgo: '2h',
@@ -190,8 +237,8 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
               ),
               _buildFeedPost(
                 username: 'Marie Dubois',
-                userImage: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200',
-                postImage: 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=800',
+                userImage: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400',
+                postImage: 'https://images.pexels.com/photos/3764013/pexels-photo-3764013.jpeg?auto=compress&cs=tinysrgb&w=800',
                 description: 'Offre spéciale soin du visage anti-âge ! 🎉\n-20% cette semaine sur notre soin signature.',
                 likes: '95',
                 timeAgo: '4h',
@@ -200,8 +247,8 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
               ),
               _buildFeedPost(
                 username: 'Julie Bernard',
-                userImage: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=200',
-                postImage: 'https://images.unsplash.com/photo-1632345031435-8727f6897d53?q=80&w=800',
+                userImage: 'https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=400',
+                postImage: 'https://images.pexels.com/photos/3997379/pexels-photo-3997379.jpeg?auto=compress&cs=tinysrgb&w=800',
                 description: 'Collection été : nouveaux vernis bio 💅\nDes couleurs vibrantes pour illuminer votre été !',
                 likes: '156',
                 timeAgo: '6h',
@@ -325,21 +372,13 @@ class _ClientHomeScreenState extends State<ClientHomeScreen> {
               children: [
                 CircleAvatar(
                   radius: 20.r,
+                  backgroundColor: Colors.grey[200],
                   child: ClipOval(
-                    child: CachedNetworkImage(
+                    child: ErrorHandlingImage(
                       imageUrl: userImage,
-                      placeholder: (context, url) => CircularProgressIndicator(
-                        color: AppColors.primary,
-                        strokeWidth: 2,
-                      ),
-                      errorWidget: (context, url, error) => Icon(
-                        Icons.person,
-                        size: 20.r,
-                        color: AppColors.primary,
-                      ),
-                      fit: BoxFit.cover,
                       width: 40.r,
                       height: 40.r,
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),

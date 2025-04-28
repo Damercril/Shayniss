@@ -41,6 +41,46 @@ class AuthService {
     return true;
   }
 
+  /// Inscrit un nouvel utilisateur
+  static Future<bool> register({
+    required String phoneNumber,
+    required String pin,
+    required UserType userType,
+    required Map<String, dynamic> userData,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    // Vérifier si le numéro de téléphone est valide
+    bool isValidPhone = phoneNumber.length == 10 && phoneNumber.startsWith('0');
+    bool isValidPin = pin.length == 4 && int.tryParse(pin) != null;
+    
+    if (!isValidPhone || !isValidPin) return false;
+
+    try {
+      // TODO: Implémenter la vraie logique d'inscription avec l'API
+      // Pour le moment, on simule une inscription réussie
+      
+      // Vérifier que le préfixe du numéro correspond au type d'utilisateur
+      if (userType == UserType.professional && !phoneNumber.startsWith('06')) {
+        return false;
+      }
+      if (userType == UserType.client && !phoneNumber.startsWith('07')) {
+        return false;
+      }
+      
+      // Stocker les informations de l'utilisateur
+      await prefs.setString(_tokenKey, 'token_${DateTime.now().millisecondsSinceEpoch}');
+      await prefs.setString(_userIdKey, 'user_$phoneNumber');
+      await prefs.setString(_userTypeKey, userType.toJson());
+      await prefs.setString(_phoneKey, phoneNumber);
+      
+      return true;
+    } catch (e) {
+      print('Erreur lors de l\'inscription: $e');
+      return false;
+    }
+  }
+
   /// Vérifie les identifiants (simulation)
   static Future<bool> _verifyCredentials(String phoneNumber, String pin) async {
     // TODO: Implémenter la vraie vérification avec l'API

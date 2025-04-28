@@ -5,6 +5,9 @@ class Appointment {
   final String id;
   final String clientId;
   final String serviceId;
+  final String? professionalId;
+  final String? serviceName;
+  final String? professionalName;
   final DateTime dateTime;
   final String? notes;
   final String status; // 'pending', 'confirmed', 'cancelled', 'completed'
@@ -15,6 +18,9 @@ class Appointment {
     String? id,
     required this.clientId,
     required this.serviceId,
+    this.professionalId,
+    this.serviceName,
+    this.professionalName,
     required this.dateTime,
     this.notes,
     String? status,
@@ -45,6 +51,7 @@ class Appointment {
       'id': id,
       'clientId': clientId,
       'serviceId': serviceId,
+      'professionalId': professionalId,
       'dateTime': dateTime.toIso8601String(),
       'notes': notes,
       'status': status,
@@ -53,11 +60,29 @@ class Appointment {
     };
   }
 
+  // Pour la compatibilité avec Supabase
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'client_id': clientId,
+      'service_id': serviceId,
+      'professional_id': professionalId,
+      'date_time': dateTime.toIso8601String(),
+      'notes': notes,
+      'status': status,
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
+    };
+  }
+
   factory Appointment.fromMap(Map<String, dynamic> map) {
     return Appointment(
       id: map['id'],
       clientId: map['clientId'],
       serviceId: map['serviceId'],
+      professionalId: map['professionalId'],
+      serviceName: map['serviceName'],
+      professionalName: map['professionalName'],
       dateTime: DateTime.parse(map['dateTime']),
       notes: map['notes'],
       status: map['status'],
@@ -66,10 +91,34 @@ class Appointment {
     );
   }
 
+  // Pour la compatibilité avec Supabase
+  factory Appointment.fromJson(Map<String, dynamic> json) {
+    return Appointment(
+      id: json['id'],
+      clientId: json['client_id'],
+      serviceId: json['service_id'],
+      professionalId: json['professional_id'],
+      serviceName: json['service_name'],
+      professionalName: json['professional_name'],
+      dateTime: DateTime.parse(json['date_time']),
+      notes: json['notes'],
+      status: json['status'],
+      createdAt: json['created_at'] != null 
+          ? DateTime.parse(json['created_at']) 
+          : DateTime.now(),
+      updatedAt: json['updated_at'] != null 
+          ? DateTime.parse(json['updated_at']) 
+          : DateTime.now(),
+    );
+  }
+
   Appointment copyWith({
     String? id,
     String? clientId,
     String? serviceId,
+    String? professionalId,
+    String? serviceName,
+    String? professionalName,
     DateTime? dateTime,
     String? notes,
     String? status,
@@ -80,6 +129,9 @@ class Appointment {
       id: id ?? this.id,
       clientId: clientId ?? this.clientId,
       serviceId: serviceId ?? this.serviceId,
+      professionalId: professionalId ?? this.professionalId,
+      serviceName: serviceName ?? this.serviceName,
+      professionalName: professionalName ?? this.professionalName,
       dateTime: dateTime ?? this.dateTime,
       notes: notes ?? this.notes,
       status: status ?? this.status,

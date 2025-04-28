@@ -8,6 +8,7 @@ import 'core/theme/app_theme.dart';
 import 'features/professional/screens/professional_navigation.dart';
 import 'features/client/screens/client_navigation_screen.dart';
 import 'features/auth/screens/login_screen.dart';
+import 'features/auth/screens/user_type_selection_screen.dart';
 import 'features/auth/services/auth_service.dart';
 import 'features/messages/services/message_service.dart';
 import 'features/notifications/services/push_notification_service.dart';
@@ -95,6 +96,7 @@ class MyApp extends StatelessWidget {
               ),
               routes: {
                 '/login': (context) => const LoginScreen(),
+                '/register': (context) => const UserTypeSelectionScreen(),
                 '/professional': (context) => const ProfessionalNavigation(),
                 '/client': (context) => const ClientNavigationScreen(),
               },
